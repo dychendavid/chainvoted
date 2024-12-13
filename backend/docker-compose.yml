@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  # Rabbit MQ Task Queue
+  # rabbit:
+  #   image: "rabbitmq:3-management"
+  #   ports:
+  #     - "15672:15672"
+  #     - "5672:5672"
+  #   labels:
+  #     NAME: "rabbitmq"
+
+  # # Redis
+  # redis:
+  #   image: "redis:6.2"
+  #   ports:
+  #     - "6379:6379"
+  #   labels:
+  #     NAME: "redis"
+
+  postgresql:
+    build:
+      context: .
+      dockerfile: postgres/Dockerfile
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+    labels:
+      NAME: 'pg'
+    volumes:
+      - postgresql-data:/var/lib/postgresql-14/data
+
+# Persistent Data Volumes
+volumes:
+  postgresql-data:
