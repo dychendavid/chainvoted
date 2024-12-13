@@ -3,7 +3,7 @@ import { Card, CardContent } from "./ui/card";
 import { PollProps } from "@/stores/props";
 import { useEffect, useState } from "react";
 import { ethers, Event } from "ethers";
-import PollContract from "@artifacts/contracts/Poll.sol/Poll.json";
+import PollContract from "@shared/artifacts/contracts/Poll.sol/Poll.json";
 import { useContractReady } from "@/hooks/useWalletReady";
 
 type PollListItemProps = {
