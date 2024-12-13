@@ -5,7 +5,7 @@ import { PollModule } from './domains/poll/poll.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
-import { AuthModule } from './domains/auth/auth.module';
+// import { AuthModule } from './domains/auth/auth.module';
 
 @Module({
   imports: [
@@ -26,7 +26,7 @@ import { AuthModule } from './domains/auth/auth.module';
     }),
     ScheduleModule.forRoot(),
     PollModule,
-    AuthModule,
+    // AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
