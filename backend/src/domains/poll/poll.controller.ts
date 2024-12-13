@@ -41,7 +41,7 @@ export class PollController {
         expiredAt,
       );
 
-      await this.pollService.addVerifiedUsers();
+      // await this.pollService.addVerifiedUsers();
 
       return {
         status: HttpStatus.OK,

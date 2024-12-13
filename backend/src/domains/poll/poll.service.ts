@@ -64,7 +64,7 @@ export class PollService {
   /*
    * iteration by poll(contract), add verified users to the contract
    */
-  @Interval(10000)
+  // @Interval(10000)
   async addVerifiedUsers() {
     const polls = await this.pollRepository.findAlivePolls();
     for (const poll of polls) {

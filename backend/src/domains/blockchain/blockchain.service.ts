@@ -38,8 +38,8 @@ export class BlockchainService {
 
   async getArtifact(contractName: string): Promise<ContractArtifact> {
     try {
-      // TODO should change path management
-      const artifactPath = `${process.cwd()}/../hardhat/artifacts/contracts/${contractName}.sol/${contractName}.json`;
+      // NOTE possible to use tsconfig path alias
+      const artifactPath = `${process.cwd()}/../shared/artifacts/contracts/${contractName}.sol/${contractName}.json`;
       const data = await fs.promises.readFile(artifactPath, 'utf8');
       return JSON.parse(data);
     } catch (error) {
