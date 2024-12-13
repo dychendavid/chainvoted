@@ -36,15 +36,17 @@ const PollDetail = ({ onBack }: PollDetailProps) => {
           <h2 className="text-2xl font-bold mb-2">{poll.title}</h2>
           <p className="text-gray-600">{poll.description}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="sm:flex gap-2">
           {poll.isIdVerification && (
             <div className="flex items-center gap-1 bg-blue-50 text-blue-600 px-3 py-1.5 rounded">
-              <Shield className="w-4 h-4" /> ID Required
+              <Shield className="w-4 h-4" />
+              <span className="hidden sm:block">ID Required</span>
             </div>
           )}
           {poll.isSmsVerification && (
             <div className="flex items-center gap-1 bg-purple-50 text-purple-600 px-3 py-1.5 rounded">
-              <Phone className="w-4 h-4" /> SMS Verify
+              <Phone className="w-4 h-4" />
+              <span className="hidden sm:block">SMS Verify</span>
             </div>
           )}
         </div>
