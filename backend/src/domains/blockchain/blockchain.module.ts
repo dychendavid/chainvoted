@@ -9,6 +9,6 @@ import { TxQueueEntity } from './tx-queue.entity';
 @Module({
   imports: [TypeOrmModule.forFeature([TxQueueEntity])],
   controllers: [],
-  providers: [BlockchainService, TxQueueService, TxQueueRepository],
+  providers: [BlockchainService],
 })
 export class BlockchainModule {}

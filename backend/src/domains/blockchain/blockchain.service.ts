@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 
 import { Contract, ContractFactory, ethers } from 'ethers';
 import * as fs from 'fs';
-import { NonceType } from './nonce.service';
 
 interface ContractArtifact {
   _format: string;
@@ -29,12 +28,12 @@ export class BlockchainService {
     return this.localProvider;
   }
 
-  async getNonce(walletAddress: string, nonceType: NonceType) {
-    return await this.getProvider().getTransactionCount(
-      walletAddress,
-      nonceType,
-    );
-  }
+  // async getNonce(walletAddress: string, nonceType: NonceType) {
+  //   return await this.getProvider().getTransactionCount(
+  //     walletAddress,
+  //     nonceType,
+  //   );
+  // }
 
   async getArtifact(contractName: string): Promise<ContractArtifact> {
     try {
