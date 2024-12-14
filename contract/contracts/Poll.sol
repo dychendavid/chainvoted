@@ -79,7 +79,7 @@ contract Poll {
     function vote(uint256 candidateId) public {
         require(isCandidateValid(candidateId), "Invalid candidate");
         require(!isClosed, "Poll is closed");
-        require(isVoter(msg.sender), "You are not allowed to vote");
+        // require(isVoter(msg.sender), "You are not allowed to vote");
         require(!hasVoted(msg.sender), "You already voted");
         
         // mark voted

@@ -5,7 +5,7 @@ import { ThumbsUp, Wallet } from "lucide-react";
 import usePollStore from "@/stores/PollStore";
 import { useEffect, useState } from "react";
 import PollContract from "@shared/artifacts/contracts/Poll.sol/Poll.json";
-import { useContractReady } from "@/hooks/useWalletReady";
+import { useContractReady, useWalletReady } from "@/hooks/useWalletReady";
 import DonateModal from "./donate_modal";
 
 type PollOptionItemProps = {
@@ -21,50 +21,53 @@ const PollOptionItem = ({ option, onVote }: PollOptionItemProps) => {
   const [votes, setVotes] = useState(0);
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [donateAmount, setDonateAmount] = useState(0);
-
-  const totalVotes = pollStore.totalVotes;
-
+  const [totalVotes, setTotalVotes] = useState(0);
+  const [isVoted, setIsVoted] = useState(false);
+  const [isVoting, setIsVoting] = useState(false);
   const percent = totalVotes == 0 ? 0 : (votes / totalVotes) * 100;
   const contract = useContractReady(poll.address, PollContract.abi);
-
+  const wallet = useWalletReady();
   const handleVote = async () => {
     try {
+      if (isVoted) {
+        return;
+      }
+      setIsVoting(true);
       await contract?.vote(option.id);
-      console.log(await contract.getCandidateVotes(option.id));
-      setVotes(votes + 1);
-      pollStore.setTotalVotes(pollStore.totalVotes + 1);
-      // setTotalVotes(totalVotes + 1);
-      console.log(votes, totalVotes);
     } catch (e) {
+      // TODO show error
       console.info(e);
+    } finally {
+      setIsVoting(false);
+      setIsVoted(true);
     }
-    // refreshVotes();
   };
 
   const refreshVotes = async () => {
-    // const votes = await contract?.getCandidateVotes(option.id);
-    // const totalVotes = await contract?.getTotalVotes();
-    // setVotes(votes.toNumber());
-    // setTotalVotes(totalVotes.toNumber());
-    // setVotes(votes + 1);
-    // setTotalVotes(totalVotes + 1);
+    const votes = await contract?.getCandidateVotes(option.id);
+    const totalVotes = await contract?.getTotalVotes();
+    setVotes(votes?.toNumber());
+    setTotalVotes(totalVotes?.toNumber());
   };
 
   useEffect(() => {
-    if (contract) {
-      console.log("contract", contract);
-      refreshVotes();
-    }
+    const run = async () => {
+      if (contract) {
+        await refreshVotes();
+      }
 
-    contract?.on("Voted", (e: Event) => {
-      console.log("Voted");
-      refreshVotes();
-    });
+      // setIsVoted(await contract?.hasVoted(wallet.account));
 
-    contract?.on("PollClosed", (e: Event) => {
-      console.log("PollClosed");
-    });
+      contract?.on("Voted", (e: Event) => {
+        console.log("Voted");
+        refreshVotes();
+      });
 
+      contract?.on("PollClosed", (e: Event) => {
+        console.log("PollClosed");
+      });
+    };
+    run();
     return () => {
       contract?.off("PollClosed", () => {}, []).off("Voted", () => {}, []);
     };
@@ -102,10 +105,12 @@ const PollOptionItem = ({ option, onVote }: PollOptionItemProps) => {
             <div className="flex gap-2 mt-4">
               <Button
                 className="flex-1 gap-2"
-                disabled={!canVote}
+                disabled={isVoted || isVoting}
                 onClick={handleVote}
               >
-                <ThumbsUp className="w-4 h-4" /> Vote
+                <ThumbsUp className="w-4 h-4" /> Vot
+                {isVoted ? "ed" : isVoting ? "ing" : "e"}
+                {/* {isVoting ? "ing" : ""} */}
               </Button>
               <Button
                 variant="outline"
