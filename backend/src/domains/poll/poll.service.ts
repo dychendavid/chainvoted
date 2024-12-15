@@ -52,12 +52,12 @@ export class PollService {
       })),
     );
 
-    const contract = await this.blockchainService.deployContract(
-      'Poll',
-      optionEntities.map((option) => option.id),
-    );
+    const contract = await this.blockchainService.deployContract('Poll', [
+      optionEntities.length,
+    ]);
 
-    pollEntity.address = await contract.getAddress();
+    const address = await contract.getAddress();
+    pollEntity.address = address;
     await this.pollRepository.update(pollEntity.id, pollEntity);
   }
 

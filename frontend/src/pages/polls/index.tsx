@@ -9,6 +9,7 @@ const Polls = () => {
   // const [donationAmount, setDonationAmount] = useState("");
   const { polls } = usePollController(1);
   const pollStore = usePollStore();
+
   return (
     <div className="max-w-3xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
@@ -28,15 +29,11 @@ const Polls = () => {
       </div>
 
       {pollStore.poll ? (
-        <PollDetail onBack={() => pollStore.setCurrentPoll(null)} />
+        <PollDetail onBack={() => pollStore.setPoll(null)} />
       ) : (
         polls &&
         polls.map((poll) => (
-          <PollListItem
-            key={poll.id}
-            poll={poll}
-            onClick={() => pollStore.setCurrentPoll(poll)}
-          />
+          <PollListItem key={poll.id} poll={poll} onClick={null} />
         ))
       )}
 

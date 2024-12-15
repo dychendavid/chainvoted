@@ -100,7 +100,6 @@ export const useWalletReady = () => {
         window.ethereum as any
       );
       await provider.send("eth_requestAccounts", []);
-
       // Refresh state after connection
       const accounts = await provider.listAccounts();
       const network = await provider.getNetwork();
@@ -112,6 +111,7 @@ export const useWalletReady = () => {
         isConnected: true,
       }));
     } catch (err) {
+      console.log(err);
       setState((prev) => ({
         ...prev,
         error: err.message,
@@ -136,6 +136,7 @@ export const useContractReady = (contractAddress, contractABI) => {
   const [contract, setContract] = useState(null);
 
   useEffect(() => {
+    console.log(isConnected, isCorrectNetwork, contractAddress, contractABI);
     if (isConnected && isCorrectNetwork && contractAddress && contractABI) {
       const provider = new ethers.providers.Web3Provider(
         window.ethereum as any
@@ -151,4 +152,15 @@ export const useContractReady = (contractAddress, contractABI) => {
   }, [isConnected, isCorrectNetwork, contractAddress, contractABI]);
 
   return contract;
+};
+
+export const useWallet = () => {
+  const provider = new ethers.providers.Web3Provider(window.ethereum as any);
+  const signer = provider.getSigner();
+  return signer;
+};
+
+export const getNonce = (address: string) => {
+  const provider = new ethers.providers.Web3Provider(window.ethereum as any);
+  return provider.getTransactionCount(address);
 };

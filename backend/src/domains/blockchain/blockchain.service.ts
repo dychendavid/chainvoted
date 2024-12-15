@@ -57,7 +57,7 @@ export class BlockchainService {
       wallet,
     );
 
-    const contract = await factory.deploy(constructorArgs);
+    const contract = await factory.deploy(...constructorArgs);
     await contract.waitForDeployment();
 
     return contract;

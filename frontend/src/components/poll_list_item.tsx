@@ -4,7 +4,8 @@ import { PollProps } from "@/stores/props";
 import { useEffect, useState } from "react";
 import { ethers, Event } from "ethers";
 import PollContract from "@shared/artifacts/contracts/Poll.sol/Poll.json";
-import { useContractReady } from "@/hooks/useWalletReady";
+import { useContractReady, useWalletReady } from "@/hooks/useWalletReady";
+import usePollStore, { PollStatsDtoProps } from "@/stores/PollStore";
 
 type PollListItemProps = {
   poll: PollProps;
@@ -12,28 +13,30 @@ type PollListItemProps = {
 };
 
 const PollListItem = ({ poll, onClick }: PollListItemProps) => {
-  const [totalVotes, setTotalVotes] = useState(0);
+  const pollStore = usePollStore();
   const contract = useContractReady(poll.address, PollContract.abi);
+  const wallet = useWalletReady();
   const isExpired = new Date(poll.expiredAt) < new Date();
+  const [stats, setStats] = useState<PollStatsDtoProps>();
 
-  const refreshVotes = async () => {
-    const totalVotes = await contract?.getTotalVotes();
-    setTotalVotes(totalVotes?.toNumber());
+  const handleClick = async () => {
+    console.log("stats, poll", stats, poll);
+    pollStore.setStats(stats);
+
+    pollStore.setPoll(poll);
   };
 
   useEffect(() => {
-    if (contract) {
-      refreshVotes();
-    }
+    const run = async () => {
+      if (contract) {
+        const stats = await contract?.getStats(
+          wallet?.account || ethers.constants.AddressZero
+        );
+        setStats(stats);
+      }
+    };
 
-    contract?.on("Voted", (e: Event) => {
-      console.log("Voted");
-      refreshVotes();
-    });
-
-    contract?.on("PollClosed", (e: Event) => {
-      console.log("PollClosed");
-    });
+    run();
 
     return () => {
       contract?.off("PollClosed", () => {}, []).off("Voted", () => {}, []);
@@ -41,7 +44,10 @@ const PollListItem = ({ poll, onClick }: PollListItemProps) => {
   }, [contract]);
 
   return (
-    <Card className="mb-4 cursor-pointer hover:bg-gray-50" onClick={onClick}>
+    <Card
+      className="mb-4 cursor-pointer hover:bg-gray-50"
+      onClick={handleClick}
+    >
       <CardContent className="p-4">
         <div className={`flex ${poll.cover ? "gap-4" : ""}`}>
           {poll.cover && (
@@ -81,7 +87,7 @@ const PollListItem = ({ poll, onClick }: PollListItemProps) => {
             </div>
             <p className="text-gray-600 text-sm mb-2">{poll.description}</p>
             <div className="flex gap-2 text-sm text-gray-500">
-              <span>{totalVotes} votes</span>
+              <span>{stats?.totalVotes.toNumber()} votes</span>
               {poll.isEnabledDonations && (
                 <>
                   <span>•</span>
