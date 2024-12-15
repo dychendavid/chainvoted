@@ -17,7 +17,7 @@ export const useSub = (event, callback) => {
 };
 
 export const usePub = () => {
-  return (event, data) => {
+  return (event, data?) => {
     emitter.emit(event, data);
   };
 };

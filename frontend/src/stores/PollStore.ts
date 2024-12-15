@@ -4,6 +4,7 @@ import { BigNumber } from "ethers";
 export type PollStatUpdateDtoProps = {
   totalVotes: BigNumber;
   optionVotes: BigNumber[];
+  isVoted?: boolean;
 };
 
 export type PollStatsDtoProps = {
@@ -62,12 +63,13 @@ const usePollStore = create<PollStoreProps>((set, get) => ({
     return get().stats.optionVotes[optionId].toNumber();
   },
   updateStats: (data: PollStatUpdateDtoProps) => {
-    const stats = get().stats;
-    stats.totalVotes = data.totalVotes;
-    stats.optionVotes = data.optionVotes;
-    set({
-      stats,
-    });
+    set((state) => ({
+      stats: {
+        ...state.stats,
+        totalVotes: data.totalVotes,
+        optionVotes: data.optionVotes,
+      },
+    }));
   },
 }));
 

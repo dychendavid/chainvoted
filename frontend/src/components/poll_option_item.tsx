@@ -1,68 +1,88 @@
-import { PollOptionProps } from "@/stores/props";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { ThumbsUp, Wallet } from "lucide-react";
-import usePollStore from "@/stores/PollStore";
+import usePollStore, { PollOptionProps } from "@/stores/PollStore";
 import { useEffect, useState } from "react";
 import PollContract from "@shared/artifacts/contracts/Poll.sol/Poll.json";
-import { useContractReady, useWalletReady } from "@/hooks/useWalletReady";
+import {
+  getNonce,
+  TransactionStatus,
+  useContractReady,
+  useProvider,
+  useProvirder,
+  useWalletReady,
+  Web3Error,
+} from "@/hooks/useWalletReady";
 import DonateModal from "./donate_modal";
+import { useToast } from "@/hooks/use-toast";
+import { usePub, useSub } from "@/hooks/use-pubsub";
 
 type PollOptionItemProps = {
   option: PollOptionProps;
+  order: number;
   onVote: () => void;
 };
 
-const PollOptionItem = ({ option, onVote }: PollOptionItemProps) => {
+const PollOptionItem = ({ option, onVote, order }: PollOptionItemProps) => {
   const isAuthenticated = true;
   const canVote = true;
   const pollStore = usePollStore();
   const poll = pollStore.poll;
-  const [votes, setVotes] = useState(0);
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [donateAmount, setDonateAmount] = useState(0);
-  const [totalVotes, setTotalVotes] = useState(0);
-  const [isVoted, setIsVoted] = useState(false);
-  const [isVoting, setIsVoting] = useState(false);
-  const percent = totalVotes == 0 ? 0 : (votes / totalVotes) * 100;
+
+  const isVoted = pollStore.stats?.isVoted;
+  // NOTE since the option.id is auto increment, we need to change it to order of the poll
+  const votes = pollStore.stats?.optionVotes[order]?.toNumber();
+  const percent =
+    pollStore.stats?.totalVotes.toNumber() == 0
+      ? 0
+      : (votes / pollStore.stats?.totalVotes.toNumber()) * 100;
   const contract = useContractReady(poll.address, PollContract.abi);
   const wallet = useWalletReady();
+  const { toast } = useToast();
+  const publish = usePub();
+
   const handleVote = async () => {
     try {
-      if (isVoted) {
-        return;
-      }
-      setIsVoting(true);
-      await contract?.vote(option.id);
+      publish(TransactionStatus.START);
+      await contract?.vote(order, {
+        nonce: getNonce(wallet?.account),
+      });
+      publish(TransactionStatus.PROCESSING);
     } catch (e) {
       // TODO show error
-      console.info(e);
-    } finally {
-      setIsVoting(false);
-      setIsVoted(true);
+      // console.info(typeof e);
+      // console.log(Object.keys(e));
+      console.log(e.reason, typeof e.reason);
+      console.log(e.error, typeof e.error);
+      console.log(e.code, typeof e.code);
+      if (e.code == "ACTION_REJECTED") {
+        toast({
+          description: "User Rejected Transaction",
+        });
+      }
+      // NOTE: this error means many case
+      if (e.code == "UNPREDICTABLE_GAS_LIMIT") {
+        if (e.reason.includes("reverted with reason string '")) {
+          const reason: string = e.reason
+            .split("reverted with reason string '")[1]
+            .split("'")[0];
+          toast({
+            description: reason,
+          });
+        } else {
+          toast({
+            description: e.reason,
+          });
+        }
+      }
+      publish(TransactionStatus.END);
     }
-  };
-
-  const refreshVotes = async () => {
-    const votes = await contract?.getCandidateVotes(option.id);
-    const totalVotes = await contract?.getTotalVotes();
-    setVotes(votes?.toNumber());
-    setTotalVotes(totalVotes?.toNumber());
   };
 
   useEffect(() => {
     const run = async () => {
-      if (contract) {
-        await refreshVotes();
-      }
-
-      // setIsVoted(await contract?.hasVoted(wallet.account));
-
-      contract?.on("Voted", (e: Event) => {
-        console.log("Voted");
-        refreshVotes();
-      });
-
       contract?.on("PollClosed", (e: Event) => {
         console.log("PollClosed");
       });
@@ -105,12 +125,11 @@ const PollOptionItem = ({ option, onVote }: PollOptionItemProps) => {
             <div className="flex gap-2 mt-4">
               <Button
                 className="flex-1 gap-2"
-                disabled={isVoted || isVoting}
+                disabled={isVoted}
                 onClick={handleVote}
               >
-                <ThumbsUp className="w-4 h-4" /> Vot
-                {isVoted ? "ed" : isVoting ? "ing" : "e"}
-                {/* {isVoting ? "ing" : ""} */}
+                <ThumbsUp className="w-4 h-4" />
+                {isVoted ? "Voted" : "Vote"}
               </Button>
               <Button
                 variant="outline"

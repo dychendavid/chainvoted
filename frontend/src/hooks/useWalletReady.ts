@@ -164,3 +164,9 @@ export const getNonce = (address: string) => {
   const provider = new ethers.providers.Web3Provider(window.ethereum as any);
   return provider.getTransactionCount(address);
 };
+
+export enum TransactionStatus {
+  START = "START",
+  PROCESSING = "PROCESSING",
+  END = "END",
+}
