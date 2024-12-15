@@ -66,6 +66,7 @@ const usePollStore = create<PollStoreProps>((set, get) => ({
     set((state) => ({
       stats: {
         ...state.stats,
+        isVoted: data.isVoted,
         totalVotes: data.totalVotes,
         optionVotes: data.optionVotes,
       },
