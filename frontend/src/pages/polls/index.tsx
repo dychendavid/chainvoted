@@ -1,14 +1,42 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import usePollController from "@/controllers/poll_controller";
 import PollListItem from "@/components/poll_list_item";
 import PollDetail from "@/components/poll_detail";
 import usePollStore from "@/stores/PollStore";
+import { useWalletReady } from "@/hooks/useWalletReady";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Polls = () => {
-  const [showDonateModal, setShowDonateModal] = useState(false);
-  // const [donationAmount, setDonationAmount] = useState("");
   const { polls } = usePollController(1);
   const pollStore = usePollStore();
+  const wallet = useWalletReady();
+  const [errorTitle, setErrorTitle] = useState("");
+  const [error, setError] = useState("");
+
+  const handleConnectWallet = async () => {
+    try {
+      await wallet.connect();
+    } catch (e) {
+      if (e instanceof Error && "code" in e) {
+        if (e.code == -32002) {
+          setErrorTitle("MetaMask login");
+          setError("MetaMask is waiting for your login");
+        } else {
+          setErrorTitle("MetaMask error");
+          setError(e.message);
+        }
+      }
+    }
+  };
 
   return (
     <div className="max-w-3xl mx-auto p-6">
@@ -22,12 +50,11 @@ const Polls = () => {
           /> */}
           ChainVote.D
         </h1>
-        {/* {!.contract && (
-          <Button onClick={handleConnectWallet}>Connect Wallet</Button>
-        )} */}
+        <Button onClick={handleConnectWallet} disabled={wallet.isConnected}>
+          {wallet.isConnected ? "Wallet Connected" : "Connect Wallet"}
+        </Button>
         {/* <GoogleLogin /> */}
       </div>
-
       {pollStore.poll ? (
         <PollDetail onBack={() => pollStore.setPoll(null)} />
       ) : (
@@ -36,9 +63,23 @@ const Polls = () => {
           <PollListItem key={poll.id} poll={poll} onClick={null} />
         ))
       )}
-
-      {/* {pollStore.poll.isEnabledDonations && selectedOption && (
-      )} */}
+      <AlertDialog open={!!error}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{errorTitle}</AlertDialogTitle>
+            <AlertDialogDescription>{error}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setError("");
+              }}
+            >
+              OK
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

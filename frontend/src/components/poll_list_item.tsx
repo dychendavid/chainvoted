@@ -1,11 +1,10 @@
 import { Clock, Phone, Shield, Wallet } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
-import { PollProps } from "@/stores/props";
 import { useEffect, useState } from "react";
-import { ethers, Event } from "ethers";
+import { ethers } from "ethers";
 import PollContract from "@shared/artifacts/contracts/Poll.sol/Poll.json";
 import { useContractReady, useWalletReady } from "@/hooks/useWalletReady";
-import usePollStore, { PollStatsDtoProps } from "@/stores/PollStore";
+import usePollStore, { PollProps, PollStatsDtoProps } from "@/stores/PollStore";
 
 type PollListItemProps = {
   poll: PollProps;
@@ -77,7 +76,7 @@ const PollListItem = ({ poll, onClick }: PollListItemProps) => {
                       <Phone className="w-3 h-3" /> SMS
                     </div>
                   )}
-                  {poll.isEnabledDonations && (
+                  {poll.isEnableDonations && (
                     <div className="flex items-center gap-1 text-xs bg-green-50 text-green-600 px-2 py-1 rounded">
                       <Wallet className="w-3 h-3" /> ETH
                     </div>
@@ -88,7 +87,7 @@ const PollListItem = ({ poll, onClick }: PollListItemProps) => {
             <p className="text-gray-600 text-sm mb-2">{poll.description}</p>
             <div className="flex gap-2 text-sm text-gray-500">
               <span>{stats?.totalVotes.toNumber()} votes</span>
-              {poll.isEnabledDonations && (
+              {poll.isEnableDonations && (
                 <>
                   <span>•</span>
                   <span>

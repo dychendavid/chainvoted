@@ -5,17 +5,25 @@ import usePollStore, { PollOptionProps } from "@/stores/PollStore";
 import { useEffect, useState } from "react";
 import PollContract from "@shared/artifacts/contracts/Poll.sol/Poll.json";
 import {
+  EthersErrorType,
   getNonce,
+  TransactionError,
   TransactionStatus,
   useContractReady,
-  useProvider,
-  useProvirder,
   useWalletReady,
-  Web3Error,
 } from "@/hooks/useWalletReady";
 import DonateModal from "./donate_modal";
 import { useToast } from "@/hooks/use-toast";
-import { usePub, useSub } from "@/hooks/use-pubsub";
+import { usePub } from "@/hooks/use-pubsub";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type PollOptionItemProps = {
   option: PollOptionProps;
@@ -24,60 +32,83 @@ type PollOptionItemProps = {
 };
 
 const PollOptionItem = ({ option, onVote, order }: PollOptionItemProps) => {
-  const isAuthenticated = true;
-  const canVote = true;
   const pollStore = usePollStore();
   const poll = pollStore.poll;
+  const isVoted = pollStore.stats?.isVoted;
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [donateAmount, setDonateAmount] = useState(0);
+  const contract = useContractReady(poll.address, PollContract.abi);
+  const wallet = useWalletReady();
+  const { toast } = useToast();
+  const publish = usePub();
+  const [errorTitle, setErrorTitle] = useState("");
+  const [error, setError] = useState("");
 
-  const isVoted = pollStore.stats?.isVoted;
   // NOTE since the option.id is auto increment, we need to change it to order of the poll
   const votes = pollStore.stats?.optionVotes[order]?.toNumber();
   const percent =
     pollStore.stats?.totalVotes.toNumber() == 0
       ? 0
       : (votes / pollStore.stats?.totalVotes.toNumber()) * 100;
-  const contract = useContractReady(poll.address, PollContract.abi);
-  const wallet = useWalletReady();
-  const { toast } = useToast();
-  const publish = usePub();
+
+  const handleConnectError = () => {
+    setErrorTitle("Connect Wallet");
+    setError("Please connect your wallet first");
+  };
 
   const handleVote = async () => {
+    if (!wallet.isConnected) {
+      handleConnectError();
+      return;
+    }
+
     try {
       publish(TransactionStatus.START);
       await contract?.vote(order, {
         nonce: getNonce(wallet?.account),
       });
       publish(TransactionStatus.PROCESSING);
-    } catch (e) {
-      // TODO show error
-      // console.info(typeof e);
-      // console.log(Object.keys(e));
-      console.log(e.reason, typeof e.reason);
-      console.log(e.error, typeof e.error);
-      console.log(e.code, typeof e.code);
-      if (e.code == "ACTION_REJECTED") {
-        toast({
-          description: "User Rejected Transaction",
-        });
-      }
-      // NOTE: this error means many case
-      if (e.code == "UNPREDICTABLE_GAS_LIMIT") {
-        if (e.reason.includes("reverted with reason string '")) {
-          const reason: string = e.reason
-            .split("reverted with reason string '")[1]
-            .split("'")[0];
+    } catch (error) {
+      if (error instanceof Error && "code" in error) {
+        const txError = error as TransactionError;
+        if (txError.code == EthersErrorType.ACTION_REJECTED) {
           toast({
-            description: reason,
+            description: "User Rejected Transaction",
           });
-        } else {
-          toast({
-            description: e.reason,
-          });
+          // NOTE: this error means many case
+        } else if (txError.code == EthersErrorType.UNPREDICTABLE_GAS_LIMIT) {
+          if (txError.reason.includes("reverted with reason string '")) {
+            const reason: string = txError.reason
+              .split("reverted with reason string '")[1]
+              .split("'")[0];
+            toast({
+              description: reason,
+            });
+          } else {
+            toast({
+              description: txError.reason,
+            });
+          }
         }
       }
+
       publish(TransactionStatus.END);
+    }
+  };
+
+  const handleDonate = async () => {
+    if (!wallet.isConnected) {
+      handleConnectError();
+      return;
+    }
+
+    setShowDonateModal(true);
+  };
+
+  const handleConfirmDonate = async () => {
+    if (!wallet.isConnected) {
+      handleConnectError();
+      return;
     }
   };
 
@@ -121,28 +152,25 @@ const PollOptionItem = ({ option, onVote, order }: PollOptionItemProps) => {
             </div>
           </div>
 
-          {isAuthenticated && (
-            <div className="flex gap-2 mt-4">
-              <Button
-                className="flex-1 gap-2"
-                disabled={isVoted}
-                onClick={handleVote}
-              >
-                <ThumbsUp className="w-4 h-4" />
-                {isVoted ? "Voted" : "Vote"}
-              </Button>
+          <div className="flex gap-2 mt-4">
+            <Button
+              className="flex-1 gap-2"
+              disabled={isVoted}
+              onClick={handleVote}
+            >
+              <ThumbsUp className="w-4 h-4" />
+              {isVoted ? "Voted" : "Vote"}
+            </Button>
+            {poll.isEnableDonations && (
               <Button
                 variant="outline"
                 className="flex-1 gap-2"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowDonateModal(true);
-                }}
+                onClick={handleDonate}
               >
                 <Wallet className="w-4 h-4" /> Donate
               </Button>
-            </div>
-          )}
+            )}
+          </div>
 
           <div className="mt-4 h-1 bg-gray-100 rounded-full overflow-hidden">
             <div
@@ -169,6 +197,23 @@ const PollOptionItem = ({ option, onVote, order }: PollOptionItemProps) => {
           }}
         />
       )}
+      <AlertDialog open={!!error}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{errorTitle}</AlertDialogTitle>
+            <AlertDialogDescription>{error}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setError("");
+              }}
+            >
+              OK
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

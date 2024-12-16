@@ -2,17 +2,14 @@ import { Button } from "./ui/button";
 import { ChevronLeft, ExternalLink, Lock, Phone, Shield } from "lucide-react";
 import { Alert, AlertDescription } from "./ui/alert";
 import PollOptionItem from "./poll_option_item";
-import usePollStore, { PollStatUpdateDtoProps } from "@/stores/PollStore";
+import usePollStore from "@/stores/PollStore";
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "./ui/alert-dialog";
 import { useEffect, useRef, useState } from "react";
 import { usePub, useSub } from "@/hooks/use-pubsub";
@@ -57,7 +54,7 @@ const PollDetail = ({ onBack, onLoading }: PollDetailProps) => {
   });
 
   useSub(TransactionStatus.PROCESSING, () => {
-    setLoadingStatus("Processing your transaction");
+    setLoadingStatus("Blockchain is processing your transaction");
     setIsLoading(true);
     const id = setInterval(() => {
       setLoadingDots((prev) => (prev + 1) % 4);

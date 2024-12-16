@@ -1,6 +1,12 @@
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 
+export interface TransactionError extends Error {
+  code?: string;
+  reason?: string;
+  message: string;
+}
+
 // const expectedChainId = 1; // mainnet
 const expectedChainId = 31337; // hardhat
 
@@ -24,7 +30,7 @@ export const useWalletReady = () => {
 
         // Get provider
         const provider = new ethers.providers.Web3Provider(
-          window.ethereum as any
+          window.ethereum as unknown as ethers.providers.ExternalProvider
         );
 
         // Get accounts (this will prompt user if not connected)
@@ -48,12 +54,14 @@ export const useWalletReady = () => {
           loading: false,
           error: null,
         });
-      } catch (err) {
-        setState((prev) => ({
-          ...prev,
-          loading: false,
-          error: err.message,
-        }));
+      } catch (error) {
+        if (error instanceof Error && "message" in error) {
+          setState((prev) => ({
+            ...prev,
+            loading: false,
+            error: error.message,
+          }));
+        }
       }
     };
 
@@ -91,32 +99,28 @@ export const useWalletReady = () => {
   }, []);
 
   const connect = async () => {
-    try {
-      if (!window.ethereum) {
-        throw new Error("Please install MetaMask");
-      }
-
-      const provider = new ethers.providers.Web3Provider(
-        window.ethereum as any
-      );
-      await provider.send("eth_requestAccounts", []);
-      // Refresh state after connection
-      const accounts = await provider.listAccounts();
-      const network = await provider.getNetwork();
-
-      setState((prev) => ({
-        ...prev,
-        account: accounts[0],
-        chainId: network.chainId,
-        isConnected: true,
-      }));
-    } catch (err) {
-      console.log(err);
-      setState((prev) => ({
-        ...prev,
-        error: err.message,
-      }));
+    if (!window.ethereum) {
+      throw new Error("Please install MetaMask and reload page");
     }
+
+    // Force Metamask to reload its connection state
+    await window.ethereum.request({
+      method: "wallet_requestPermissions",
+      params: [{ eth_accounts: {} }],
+    });
+
+    const provider = new ethers.providers.Web3Provider(window.ethereum as any);
+    await provider.send("eth_requestAccounts", []);
+    // Refresh state after connection
+    const accounts = await provider.listAccounts();
+    const network = await provider.getNetwork();
+
+    setState((prev) => ({
+      ...prev,
+      account: accounts[0],
+      chainId: network.chainId,
+      isConnected: true,
+    }));
   };
 
   return { ...state, connect };
@@ -136,16 +140,15 @@ export const useContractReady = (contractAddress, contractABI) => {
   const [contract, setContract] = useState(null);
 
   useEffect(() => {
-    console.log(isConnected, isCorrectNetwork, contractAddress, contractABI);
-    if (isConnected && isCorrectNetwork && contractAddress && contractABI) {
+    // console.log(isConnected, isCorrectNetwork, contractAddress, contractABI);
+    if (isCorrectNetwork && contractAddress && contractABI) {
       const provider = new ethers.providers.Web3Provider(
         window.ethereum as any
       );
-      const signer = provider.getSigner();
       const contractInstance = new ethers.Contract(
         contractAddress,
         contractABI,
-        signer
+        isConnected ? provider.getSigner() : provider
       );
       setContract(contractInstance);
     }
@@ -169,4 +172,9 @@ export enum TransactionStatus {
   START = "START",
   PROCESSING = "PROCESSING",
   END = "END",
+}
+
+export enum EthersErrorType {
+  UNPREDICTABLE_GAS_LIMIT = "UNPREDICTABLE_GAS_LIMIT",
+  ACTION_REJECTED = "ACTION_REJECTED",
 }

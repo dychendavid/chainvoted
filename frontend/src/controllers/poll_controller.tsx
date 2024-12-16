@@ -1,9 +1,8 @@
 import { API } from "@/configs/api";
-import { PollProps } from "@/stores/props";
+import { PollProps } from "@/stores/PollStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import applyCaseMiddleware from "axios-case-converter";
-import _ from "lodash";
 
 const usePollController = (user_id: number) => {
   const { data: polls, refetch: refetchPolls } = useQuery<PollProps[]>({

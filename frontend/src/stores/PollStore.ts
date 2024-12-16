@@ -24,7 +24,7 @@ export type PollProps = {
   isEmailVerification: boolean;
   isSmsVerification: boolean;
   isIdVerification: boolean;
-  isEnabledDonations: boolean;
+  isEnableDonations: boolean;
   options: PollOptionProps[];
 };
 
