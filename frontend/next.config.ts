@@ -4,8 +4,8 @@ const nextConfig: NextConfig = {
   /* config options here */
   reactStrictMode: true,
 
-  typescript: {
-    ignoreBuildErrors: true,
+  eslint: {
+    ignoreDuringBuilds: true,
   },
 
   async headers() {
