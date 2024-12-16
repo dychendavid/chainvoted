@@ -64,8 +64,8 @@ const PollOptionItem = ({ option, onVote, order }: PollOptionItemProps) => {
 
     try {
       publish(TransactionStatus.START);
-      await contract?.vote(order, {
-        nonce: getNonce(wallet?.account),
+      const tx = await contract?.vote(order, {
+        nonce: await getNonce(wallet?.account),
       });
       publish(TransactionStatus.PROCESSING);
     } catch (error) {
