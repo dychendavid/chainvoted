@@ -15,7 +15,7 @@ const DonateModal = ({ option, onClose, onConfirm }) => {
           <Input
             type="number"
             value={donationAmount}
-            onChange={(e) => setDonationAmount(e.target.value)}
+            onChange={(e) => setDonationAmount(parseFloat(e.target.value))}
             placeholder="Amount (ETH)"
             step="0.1"
             min="0"
