@@ -31,7 +31,10 @@ export class PollController {
     @Body('cover') cover: string,
     @Body('expired_at') expiredAt: string,
     @Body('options') options: CreatePollOptionDto[],
-    @Body('is_enable_donations') isEnableDonations: boolean,
+    @Body('is_enable_donations', {
+      transform: (value) => (value === '1' || value == 'true' ? true : false),
+    })
+    isEnableDonations: boolean,
   ): Promise<ApiResponse> {
     try {
       await this.pollService.addPoll(
@@ -42,7 +45,6 @@ export class PollController {
         expiredAt,
         isEnableDonations,
       );
-
       // await this.pollService.addVerifiedUsers();
 
       return {
