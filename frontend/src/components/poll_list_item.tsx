@@ -39,7 +39,7 @@ const PollListItem = ({ poll, onClick }: PollListItemProps) => {
     return () => {
       contract?.off("PollClosed", () => {}, []).off("Voted", () => {}, []);
     };
-  }, [contract]);
+  }, [contract, wallet?.account]);
 
   return (
     <Card
@@ -47,19 +47,19 @@ const PollListItem = ({ poll, onClick }: PollListItemProps) => {
       onClick={handleClick}
     >
       <CardContent className="p-4">
-        <div className={`flex ${poll.cover ? "gap-4" : ""}`}>
+        <div className="flex flex-col md:flex-row md:gap-4">
           {poll.cover && (
             <img
               src={poll.cover}
               alt={poll.title}
-              className="w-32 h-24 object-cover rounded-lg"
+              className="w-full h-48 md:w-32 md:h-24 object-cover rounded-lg mb-4 md:mb-0"
             />
           )}
           <div className="flex-1">
-            <div className="flex justify-between items-start">
-              <h3 className="text-lg font-bold mb-1">{poll.title}</h3>
+            <div className="flex flex-col md:flex-row justify-between md:items-start gap-2 md:gap-0">
+              <h3 className="text-lg font-bold">{poll.title}</h3>
               {isExpired ? (
-                <div className="flex items-center gap-1 text-xs text-red-500 mb-1">
+                <div className="flex items-center gap-1 text-xs text-red-500">
                   <Clock className="w-3 h-3" />
                   <span>Poll ended</span>
                 </div>
@@ -83,7 +83,7 @@ const PollListItem = ({ poll, onClick }: PollListItemProps) => {
                 </div>
               )}
             </div>
-            <p className="text-gray-600 text-sm mb-2">{poll.description}</p>
+            <p className="text-gray-600 text-sm my-2">{poll.description}</p>
             <div className="flex gap-2 text-sm text-gray-500">
               <span>
                 {!isUndefined(stats?.totalVotes.toNumber())
@@ -93,10 +93,7 @@ const PollListItem = ({ poll, onClick }: PollListItemProps) => {
               {poll.isEnableDonations && (
                 <>
                   <span>•</span>
-                  <span>
-                    {/* {poll.options.reduce((sum, opt) => sum + opt.donations, 0)}{" "} */}
-                    0 ETH donated
-                  </span>
+                  <span>0 ETH donated</span>
                 </>
               )}
             </div>
