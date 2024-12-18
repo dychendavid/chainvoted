@@ -16,8 +16,8 @@ services:
 
   postgresql:
     build:
-      context: .
-      dockerfile: postgres/Dockerfile
+      context: ./services/postgres
+      dockerfile: Dockerfile
     ports:
       - "5432:5432"
     environment:
