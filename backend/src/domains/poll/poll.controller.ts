@@ -11,7 +11,7 @@ import { PollRepository } from './poll.repository';
 import { CreatePollOptionDto } from './poll.dto';
 import { BlockchainService } from '../blockchain/blockchain.service';
 
-@Controller('poll')
+@Controller('api/poll')
 export class PollController {
   constructor(
     private readonly pollService: PollService,
