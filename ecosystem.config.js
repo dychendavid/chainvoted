@@ -8,7 +8,7 @@ module.exports = {
       watch: ["./frontend"],
       ignore_watch: ["node_modules", "logs"],
       env: {
-        PORT: 80,
+        PORT: 3000,
       },
     },
     {
