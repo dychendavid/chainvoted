@@ -5,6 +5,7 @@ import { ethers } from "ethers";
 import PollContract from "@shared/artifacts/contracts/Poll.sol/Poll.json";
 import { useContractReady, useWalletReady } from "@/hooks/useWalletReady";
 import usePollStore, { PollProps, PollStatsDtoProps } from "@/stores/PollStore";
+import { isUndefined } from "lodash";
 
 type PollListItemProps = {
   poll: PollProps;
@@ -19,9 +20,7 @@ const PollListItem = ({ poll, onClick }: PollListItemProps) => {
   const [stats, setStats] = useState<PollStatsDtoProps>();
 
   const handleClick = async () => {
-    console.log("stats, poll", stats, poll);
     pollStore.setStats(stats);
-
     pollStore.setPoll(poll);
   };
 
@@ -86,7 +85,11 @@ const PollListItem = ({ poll, onClick }: PollListItemProps) => {
             </div>
             <p className="text-gray-600 text-sm mb-2">{poll.description}</p>
             <div className="flex gap-2 text-sm text-gray-500">
-              <span>{stats?.totalVotes.toNumber()} votes</span>
+              <span>
+                {!isUndefined(stats?.totalVotes.toNumber())
+                  ? stats?.totalVotes.toNumber() + " votes"
+                  : "loading from blockchain..."}
+              </span>
               {poll.isEnableDonations && (
                 <>
                   <span>•</span>

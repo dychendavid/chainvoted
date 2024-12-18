@@ -11,7 +11,7 @@ import { PollRepository } from './poll.repository';
 import { CreatePollOptionDto } from './poll.dto';
 import { BlockchainService } from '../blockchain/blockchain.service';
 
-@Controller('poll')
+@Controller('api/poll')
 export class PollController {
   constructor(
     private readonly pollService: PollService,
@@ -31,6 +31,10 @@ export class PollController {
     @Body('cover') cover: string,
     @Body('expired_at') expiredAt: string,
     @Body('options') options: CreatePollOptionDto[],
+    @Body('is_enable_donations', {
+      transform: (value) => (value === '1' || value == 'true' ? true : false),
+    })
+    isEnableDonations: boolean,
   ): Promise<ApiResponse> {
     try {
       await this.pollService.addPoll(
@@ -39,8 +43,8 @@ export class PollController {
         cover,
         options,
         expiredAt,
+        isEnableDonations,
       );
-
       // await this.pollService.addVerifiedUsers();
 
       return {

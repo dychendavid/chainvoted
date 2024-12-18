@@ -72,7 +72,7 @@ const PollDetail = ({ onBack, onLoading }: PollDetailProps) => {
       pollStore.updateStats({ totalVotes, optionVotes, isVoted: true });
       publish(TransactionStatus.END);
     });
-  }, [wallet?.account]);
+  }, [contract]);
 
   return (
     <div className="space-y-4">

@@ -7,4 +7,4 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 
-COPY postgres/init-scripts/ /docker-entrypoint-initdb.d/
+COPY init-scripts/ /docker-entrypoint-initdb.d/
