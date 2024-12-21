@@ -34,6 +34,7 @@ type PollOptionItemProps = {
 const PollOptionItem = ({ option, onVote, order }: PollOptionItemProps) => {
   const pollStore = usePollStore();
   const poll = pollStore.poll;
+
   const isVoted = pollStore.stats?.isVoted;
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [donateAmount, setDonateAmount] = useState(0);
@@ -90,6 +91,11 @@ const PollOptionItem = ({ option, onVote, order }: PollOptionItemProps) => {
             });
           }
         }
+      } else {
+        const err = error as Error;
+        toast({
+          description: err.message,
+        });
       }
 
       publish(TransactionStatus.END);

@@ -49,20 +49,22 @@ export class PollRepository {
     cover,
     expiredAt,
     address,
+    isEnableDonations,
   }: {
     title: string;
     description: string;
     cover: string;
     expiredAt: string;
     address?: string;
+    isEnableDonations?: boolean;
   }): Promise<PollEntity> {
-    console.log('cover', cover);
     const pollEntity = this.pollRepo.create({
       title,
       description,
       cover,
       expiredAt: new Date(expiredAt),
       address,
+      isEnableDonations,
     });
     return this.pollRepo.save(pollEntity);
   }

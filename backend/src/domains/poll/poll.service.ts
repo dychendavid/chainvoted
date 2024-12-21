@@ -35,12 +35,14 @@ export class PollService {
     cover: string,
     options: Partial<CreatePollOptionDto[]>,
     expiredAt: string,
+    isEnableDonations: boolean,
   ) {
     const pollEntity = await this.pollRepository.create({
       title,
       description,
       cover,
       expiredAt,
+      isEnableDonations,
     });
 
     const optionEntities = await this.pollRepository.createOptions(
