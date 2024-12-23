@@ -168,7 +168,7 @@ export const getNonce = (address: string) => {
   return provider.getTransactionCount(address);
 };
 
-export enum TransactionStatus {
+export enum BlockchainTransactionStatus {
   START = "START",
   PROCESSING = "PROCESSING",
   END = "END",

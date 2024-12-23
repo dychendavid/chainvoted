@@ -51,6 +51,11 @@ export class PollRepository extends Repository<PollEntity> {
       relations: {
         options: true,
       },
+      order: {
+        options: {
+          id: 'ASC',
+        },
+      },
     });
   }
 }

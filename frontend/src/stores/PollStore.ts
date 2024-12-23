@@ -18,9 +18,11 @@ export type PollProps = {
   id?: number;
   title: string;
   description: string;
+  votes: number;
   cover: string;
   expiredAt: string;
   address: string;
+  isVoted?: boolean;
   isEmailVerification: boolean;
   isSmsVerification: boolean;
   isIdVerification: boolean;
@@ -44,6 +46,11 @@ export type PollStoreProps = {
   updateStats: (data: PollStatUpdateDtoProps) => void;
   setPoll: (poll: PollProps) => void;
   getOptionVotes: (optionId: number) => number;
+};
+
+export type VoteProps = {
+  pollId: number;
+  optionIndex: number;
 };
 
 const usePollStore = create<PollStoreProps>((set, get) => ({

@@ -14,11 +14,14 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { usePub, useSub } from "@/hooks/use-pubsub";
 import {
-  TransactionStatus,
+  BlockchainTransactionStatus,
   useContractReady,
   useWalletReady,
 } from "@/hooks/useWalletReady";
 import PollContract from "@shared/artifacts/contracts/Poll.sol/Poll.json";
+import usePollController from "@/controllers/poll_controller";
+import useUserStore from "@/stores/userStore";
+import { ApiCallStatus } from "@/lib/api";
 
 type PollDetailProps = {
   onBack?: () => void;
@@ -27,10 +30,11 @@ type PollDetailProps = {
 
 const PollDetail = ({ onBack, onLoading }: PollDetailProps) => {
   const pollStore = usePollStore();
-  const poll = pollStore.poll;
+  const userStore = useUserStore();
+  const { usePoll } = usePollController(userStore.userId);
+  const { data: poll, refetch: refetchPoll } = usePoll(pollStore.poll.id);
 
   // TODO: Implement authentication and verification checks
-  const canVote = true;
   const needsVerification = false;
   const isAuthenticated = true;
 
@@ -42,9 +46,8 @@ const PollDetail = ({ onBack, onLoading }: PollDetailProps) => {
   const wallet = useWalletReady();
 
   const [loadingStatus, setLoadingStatus] = useState("");
-  const publish = usePub();
 
-  useSub(TransactionStatus.START, () => {
+  useSub(BlockchainTransactionStatus.START, () => {
     setLoadingStatus("Waiting for your acceptance");
     setIsLoading(true);
     const id = setInterval(() => {
@@ -53,8 +56,8 @@ const PollDetail = ({ onBack, onLoading }: PollDetailProps) => {
     intervalRef.current = id;
   });
 
-  useSub(TransactionStatus.PROCESSING, () => {
-    setLoadingStatus("Blockchain is processing your transaction");
+  useSub(ApiCallStatus.PROCESSING, () => {
+    setLoadingStatus("Processing your vote");
     setIsLoading(true);
     const id = setInterval(() => {
       setLoadingDots((prev) => (prev + 1) % 4);
@@ -62,15 +65,22 @@ const PollDetail = ({ onBack, onLoading }: PollDetailProps) => {
     intervalRef.current = id;
   });
 
-  useSub(TransactionStatus.END, () => {
+  useSub(ApiCallStatus.SUCCESS, () => {
+    refetchPoll();
+    setIsLoading(false);
+    clearInterval(intervalRef.current);
+  });
+
+  useSub([ApiCallStatus.ERROR, BlockchainTransactionStatus.END], () => {
     setIsLoading(false);
     clearInterval(intervalRef.current);
   });
 
   useEffect(() => {
-    contract?.on("Voted", (totalVotes, optionVotes) => {
-      pollStore.updateStats({ totalVotes, optionVotes, isVoted: true });
-      publish(TransactionStatus.END);
+    contract?.on("Donated", (totalVotes, optionVotes) => {
+      // TODO: Update poll stats
+      // pollStore.updateStats({ totalVotes, optionVotes, isVoted: true });
+      // publish(TransactionStatus.END);
     });
   }, [contract]);
 
@@ -80,27 +90,27 @@ const PollDetail = ({ onBack, onLoading }: PollDetailProps) => {
         <ChevronLeft className="w-4 h-4" /> Back to Polls
       </Button>
 
-      {poll.cover && (
+      {poll?.cover && (
         <img
-          src={poll.cover}
-          alt={poll.title}
+          src={poll?.cover}
+          alt={poll?.title}
           className="w-full h-48 object-cover rounded-xl"
         />
       )}
 
       <div className="flex justify-between items-start">
         <div>
-          <h2 className="text-2xl font-bold mb-2">{poll.title}</h2>
-          <p className="text-gray-600">{poll.description}</p>
+          <h2 className="text-2xl font-bold mb-2">{poll?.title}</h2>
+          <p className="text-gray-600">{poll?.description}</p>
         </div>
         <div className="sm:flex gap-2">
-          {poll.isIdVerification && (
+          {poll?.isIdVerification && (
             <div className="flex items-center gap-1 bg-blue-50 text-blue-600 px-3 py-1.5 rounded">
               <Shield className="w-4 h-4" />
               <span className="hidden sm:block">ID Required</span>
             </div>
           )}
-          {poll.isSmsVerification && (
+          {poll?.isSmsVerification && (
             <div className="flex items-center gap-1 bg-purple-50 text-purple-600 px-3 py-1.5 rounded">
               <Phone className="w-4 h-4" />
               <span className="hidden sm:block">SMS Verify</span>
@@ -138,15 +148,8 @@ const PollDetail = ({ onBack, onLoading }: PollDetailProps) => {
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {poll.options.map((option, index) => (
-          <PollOptionItem
-            key={index}
-            order={index}
-            option={option}
-            onVote={() => {
-              /* handle vote */
-            }}
-          />
+        {poll?.options.map((option, index) => (
+          <PollOptionItem key={index} index={index} poll={poll} />
         ))}
       </div>
       <AlertDialog open={isLoading}>

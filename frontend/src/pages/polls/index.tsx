@@ -15,9 +15,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import LoginButton from "@/components/google_login";
+import useUserStore from "@/stores/userStore";
 
 const Polls = () => {
-  const { polls } = usePollController(1);
+  const userStore = useUserStore();
+  const { polls } = usePollController(userStore.userId);
   const pollStore = usePollStore();
   const wallet = useWalletReady();
   const [errorTitle, setErrorTitle] = useState("");

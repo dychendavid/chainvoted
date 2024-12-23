@@ -1,14 +1,14 @@
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { ThumbsUp, Wallet } from "lucide-react";
-import usePollStore, { PollOptionProps } from "@/stores/PollStore";
+import usePollStore, { PollOptionProps, PollProps } from "@/stores/PollStore";
 import { useEffect, useState } from "react";
 import PollContract from "@shared/artifacts/contracts/Poll.sol/Poll.json";
 import {
   EthersErrorType,
   getNonce,
   TransactionError,
-  TransactionStatus,
+  BlockchainTransactionStatus,
   useContractReady,
   useWalletReady,
 } from "@/hooks/useWalletReady";
@@ -24,33 +24,39 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import usePollController from "@/controllers/poll_controller";
+import useUserStore from "@/stores/userStore";
+import { AxiosError } from "axios";
+import { ApiCallStatus } from "@/lib/api";
 
 type PollOptionItemProps = {
-  option: PollOptionProps;
-  order: number;
-  onVote: () => void;
+  poll: PollProps;
+  index: number;
 };
 
-const PollOptionItem = ({ option, onVote, order }: PollOptionItemProps) => {
-  const pollStore = usePollStore();
-  const poll = pollStore.poll;
+type ApiResponse = {
+  message: string;
+};
 
-  const isVoted = pollStore.stats?.isVoted;
+const PollOptionItem = ({ poll, index }: PollOptionItemProps) => {
+  const userStore = useUserStore();
+  const { voteMutation } = usePollController(userStore.userId);
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [donateAmount, setDonateAmount] = useState(0);
-  const contract = useContractReady(poll.address, PollContract.abi);
+  // NOTE: this contract should change to donation contract
+  const contract = useContractReady(poll?.address, PollContract.abi);
   const wallet = useWalletReady();
   const { toast } = useToast();
   const publish = usePub();
   const [errorTitle, setErrorTitle] = useState("");
   const [error, setError] = useState("");
 
-  // NOTE since the option.id is auto increment, we need to change it to order of the poll
-  const votes = pollStore.stats?.optionVotes[order]?.toNumber();
-  const percent =
-    pollStore.stats?.totalVotes.toNumber() == 0
-      ? 0
-      : (votes / pollStore.stats?.totalVotes.toNumber()) * 100;
+  const option = poll?.options[index];
+  // NOTE since the option.id is auto increment, we won't increase contract array size, so using index
+  const votes = option?.votes;
+  const isVoted = poll?.isVoted;
+  const isExpired = new Date(poll?.expiredAt) < new Date();
+  const percent = votes == 0 ? 0 : (votes / poll?.votes) * 100;
 
   const handleConnectError = () => {
     setErrorTitle("Connect Wallet");
@@ -58,17 +64,53 @@ const PollOptionItem = ({ option, onVote, order }: PollOptionItemProps) => {
   };
 
   const handleVote = async () => {
+    publish(ApiCallStatus.PROCESSING);
+
+    await voteMutation.mutate(
+      {
+        pollId: option.pollId,
+        optionIndex: index,
+      },
+      {
+        onSuccess: (data) => {
+          toast({
+            description: data.message,
+          });
+          publish(ApiCallStatus.SUCCESS);
+        },
+        onError: (err) => {
+          const error = err as AxiosError;
+          const data = error.response.data as ApiResponse;
+          toast({
+            description: data.message,
+          });
+          publish(ApiCallStatus.ERROR);
+        },
+      }
+    );
+  };
+
+  const handleDonate = async () => {
+    if (!wallet.isConnected) {
+      handleConnectError();
+      return;
+    }
+
+    setShowDonateModal(true);
+  };
+
+  const handleConfirmDonate = async () => {
     if (!wallet.isConnected) {
       handleConnectError();
       return;
     }
 
     try {
-      publish(TransactionStatus.START);
-      const tx = await contract?.vote(order, {
+      publish(BlockchainTransactionStatus.START);
+      const tx = await contract?.vote(index, {
         nonce: await getNonce(wallet?.account),
       });
-      publish(TransactionStatus.PROCESSING);
+      publish(BlockchainTransactionStatus.PROCESSING);
     } catch (error) {
       if (error instanceof Error && "code" in error) {
         const txError = error as TransactionError;
@@ -98,37 +140,9 @@ const PollOptionItem = ({ option, onVote, order }: PollOptionItemProps) => {
         });
       }
 
-      publish(TransactionStatus.END);
+      publish(BlockchainTransactionStatus.END);
     }
   };
-
-  const handleDonate = async () => {
-    if (!wallet.isConnected) {
-      handleConnectError();
-      return;
-    }
-
-    setShowDonateModal(true);
-  };
-
-  const handleConfirmDonate = async () => {
-    if (!wallet.isConnected) {
-      handleConnectError();
-      return;
-    }
-  };
-
-  useEffect(() => {
-    const run = async () => {
-      contract?.on("PollClosed", (e: Event) => {
-        console.log("PollClosed");
-      });
-    };
-    run();
-    return () => {
-      contract?.off("PollClosed", () => {}, []).off("Voted", () => {}, []);
-    };
-  }, [contract]);
 
   return (
     <>
@@ -161,13 +175,13 @@ const PollOptionItem = ({ option, onVote, order }: PollOptionItemProps) => {
           <div className="flex gap-2 mt-4">
             <Button
               className="flex-1 gap-2"
-              disabled={isVoted}
+              disabled={isVoted || isExpired}
               onClick={handleVote}
             >
               <ThumbsUp className="w-4 h-4" />
               {isVoted ? "Voted" : "Vote"}
             </Button>
-            {poll.isEnableDonations && (
+            {poll?.isEnableDonations && (
               <Button
                 variant="outline"
                 className="flex-1 gap-2"

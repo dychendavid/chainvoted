@@ -1,5 +1,6 @@
 import { AuthorizedSession } from "@/pages/api/auth/[...nextauth]";
 import axios from "axios";
+import applyCaseMiddleware from "axios-case-converter";
 import { getSession } from "next-auth/react";
 
 const apiBase = axios.create({
@@ -16,4 +17,11 @@ apiBase.interceptors.request.use(async (config) => {
   return config;
 });
 
-export default apiBase;
+const apiClient = applyCaseMiddleware(apiBase);
+export default apiClient;
+
+export enum ApiCallStatus {
+  PROCESSING = "PROCESSING",
+  SUCCESS = "SUCCESS",
+  ERROR = "ERROR",
+}

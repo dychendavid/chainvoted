@@ -85,11 +85,7 @@ const PollListItem = ({ poll, onClick }: PollListItemProps) => {
             </div>
             <p className="text-gray-600 text-sm my-2">{poll.description}</p>
             <div className="flex gap-2 text-sm text-gray-500">
-              <span>
-                {!isUndefined(stats?.totalVotes.toNumber())
-                  ? stats?.totalVotes.toNumber() + " votes"
-                  : "loading from blockchain..."}
-              </span>
+              <span>{poll.votes} votes</span>
               {poll.isEnableDonations && (
                 <>
                   <span>•</span>
