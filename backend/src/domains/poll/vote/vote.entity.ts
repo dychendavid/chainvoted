@@ -1,30 +1,27 @@
 import {
-  Column,
-  CreateDateColumn,
   Entity,
+  Column,
   PrimaryGeneratedColumn,
+  CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity('auth_logs')
-export class AuthLogEntity {
+@Entity('votes')
+export class VoteEntity {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
   @Column({ nullable: true })
-  token: string;
+  userId: number;
 
-  // extract from token
   @Column({ nullable: true })
-  email: string;
+  pollId: number;
 
-  // extract from token
   @Column({ nullable: true })
-  name: string;
+  optionId: number;
 
-  // for token validation
-  @Column({ nullable: true, default: false })
-  isSuccess: boolean;
+  @Column({ nullable: true })
+  optionIndex: number;
 
   @CreateDateColumn()
   createdAt: Date;

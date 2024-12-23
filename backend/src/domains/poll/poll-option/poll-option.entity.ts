@@ -2,33 +2,37 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { PollEntity } from '../poll.entity';
 
-@Entity('auth_logs')
-export class AuthLogEntity {
+@Entity('poll_options')
+export class PollOptionEntity {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
   @Column({ nullable: true })
-  token: string;
+  pollId: number;
 
-  // extract from token
   @Column({ nullable: true })
-  email: string;
+  title: string;
 
-  // extract from token
   @Column({ nullable: true })
-  name: string;
+  description: string;
 
-  // for token validation
-  @Column({ nullable: true, default: false })
-  isSuccess: boolean;
+  @Column({ nullable: true })
+  cover: string;
 
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @ManyToOne(() => PollEntity, (poll) => poll.options, {
+    createForeignKeyConstraints: false,
+  })
+  poll: PollEntity;
 }

@@ -37,7 +37,7 @@ export class AuthService {
       await this.authLogRepository.update(insertResult.identifiers[0].id, {
         email: payload.email,
         name: payload.name,
-        is_success: true,
+        isSuccess: true,
       });
 
       // update user profile
@@ -69,7 +69,7 @@ export class AuthService {
       },
     );
     this.sessionLogRepository.insert({
-      user_id: user.id,
+      userId: user.id,
       token: signed,
       expiredAt: new Date(
         Date.now() +

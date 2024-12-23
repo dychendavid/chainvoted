@@ -1,23 +1,20 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PollController } from './poll.controller';
-import { PollService } from './poll.service';
+import { PollEntity } from './poll.entity';
 import { PollRepository } from './poll.repository';
-import { PollOptionRepository } from './poll-option.repository';
-import { PollEntity, PollOptionEntity } from './poll.entity';
+import { PollService } from './poll.service';
+import { PollOptionEntity } from './poll-option/poll-option.entity';
+import { PollOptionRepository } from './poll-option/poll-option.repository';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { UserRepository } from '../user/user.repository';
-import { UserEntity, UserPollEntity } from '../user/user.entity';
+import { UserEntity } from '../user/user.entity';
 import { UserController } from '../user/user.controller';
+import { VoteRepository } from './vote/vote.repository';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([
-      PollEntity,
-      PollOptionEntity,
-      UserEntity,
-      UserPollEntity,
-    ]),
+    TypeOrmModule.forFeature([PollEntity, PollOptionEntity, UserEntity]),
   ],
   controllers: [PollController, UserController],
   providers: [
@@ -26,6 +23,7 @@ import { UserController } from '../user/user.controller';
     PollRepository,
     PollOptionRepository,
     UserRepository,
+    VoteRepository,
   ],
 })
 export class PollModule {}

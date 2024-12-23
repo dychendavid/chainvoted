@@ -24,39 +24,21 @@ export class UserEntity {
   @Column({ unique: true, nullable: true })
   sms: string;
 
-  @Column({ length: 42, nullable: true, name: 'address' })
+  @Column({ length: 42, nullable: true })
   address: string;
 
-  @Column({ nullable: true, name: 'is_email_verified' })
+  @Column({ nullable: true })
   isEmailVerified: boolean;
 
-  @Column({ nullable: true, name: 'is_sms_verified' })
+  @Column({ nullable: true })
   isSmsVerified: boolean;
 
   @Column({ nullable: true })
   picture: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
-}
-
-@Entity('user_polls')
-export class UserPollEntity {
-  @PrimaryGeneratedColumn('increment')
-  id: number;
-
-  @Column({ unique: true, nullable: true, name: 'user_id' })
-  userId: number;
-
-  @Column({ unique: true, nullable: true, name: 'poll_id' })
-  pollId: number;
-
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 }

@@ -12,18 +12,18 @@ export class SessionLogEntity {
   id: number;
 
   @Column({ nullable: true })
-  user_id: number;
+  userId: number;
 
   // for backend session
   @Column({ nullable: true })
   token: string;
 
-  @Column({ nullable: true, name: 'expired_at' })
+  @Column({ nullable: true })
   expiredAt: Date;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn()
   updatedAt: Date;
 }
