@@ -14,6 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import LoginButton from "@/components/google_login";
 
 const Polls = () => {
   const { polls } = usePollController(1);
@@ -53,7 +54,7 @@ const Polls = () => {
         <Button onClick={handleConnectWallet} disabled={wallet.isConnected}>
           {wallet.isConnected ? "Wallet Connected" : "Connect Wallet"}
         </Button>
-        {/* <GoogleLogin /> */}
+        <LoginButton />
       </div>
       {pollStore.poll ? (
         <PollDetail onBack={() => pollStore.setPoll(null)} />

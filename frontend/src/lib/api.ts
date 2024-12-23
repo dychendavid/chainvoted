@@ -1,16 +1,19 @@
+import { AuthorizedSession } from "@/pages/api/auth/[...nextauth]";
+import axios from "axios";
 import { getSession } from "next-auth/react";
 
-export const api = {
-  fetch: async (url: string, options: RequestInit = {}) => {
-    const session = await getSession();
+const apiBase = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+});
 
-    return fetch(url, {
-      ...options,
-      headers: {
-        ...options.headers,
-        Authorization: `Bearer ${session?.backendToken}`,
-        "Content-Type": "application/json",
-      },
-    });
-  },
-};
+apiBase.interceptors.request.use(async (config) => {
+  const session = (await getSession()) as AuthorizedSession;
+
+  if (session?.token) {
+    config.headers.Authorization = `Bearer ${session.token}`;
+  }
+
+  return config;
+});
+
+export default apiBase;

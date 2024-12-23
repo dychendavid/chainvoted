@@ -13,7 +13,6 @@ export default function App({
     <SessionProvider session={session}>
       <QueryClientProvider client={queryClient}>
         <Component {...pageProps} />
-
         <Toaster />
       </QueryClientProvider>
     </SessionProvider>

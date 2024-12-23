@@ -1,16 +1,14 @@
-import { useAuth } from "@/hooks/useAuth";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useEffect } from "react";
 
 export default function LoginButton() {
   const { data: session, status } = useSession();
-  const auth = useAuth();
 
   useEffect(() => {
-    if (session?.accessToken) {
-      auth.loginToBackend();
+    if (session) {
+      console.log(session);
     }
-  }, [session?.accessToken]);
+  }, [session]);
 
   if (status === "loading") {
     return <div>Loading...</div>;
