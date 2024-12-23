@@ -16,6 +16,9 @@ export class PollOptionEntity {
   @Column({ nullable: true })
   pollId: number;
 
+  @Column({ default: 0 })
+  votes: number;
+
   @Column({ nullable: true })
   title: string;
 

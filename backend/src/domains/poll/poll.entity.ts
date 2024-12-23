@@ -16,14 +16,11 @@ export class PollEntity {
   @Column({ length: 42, unique: false, nullable: true })
   address: string;
 
+  @Column({ default: 0 })
+  votes: number;
+
   @Column({ length: 100, unique: false, nullable: true })
   title: string;
-
-  @Column({ nullable: true })
-  description: string;
-
-  @Column({ nullable: true })
-  cover: string;
 
   @Column({ nullable: true, default: true })
   isEmailVerification: boolean;
@@ -39,6 +36,12 @@ export class PollEntity {
 
   @Column({ nullable: true })
   expiredAt: Date;
+
+  @Column({ nullable: true })
+  description: string;
+
+  @Column({ nullable: true })
+  cover: string;
 
   @CreateDateColumn()
   createdAt: Date;

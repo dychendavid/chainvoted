@@ -4,6 +4,7 @@ import { BlockchainService } from '../blockchain/blockchain.service';
 import { CreatePollOptionDto } from './poll.dto';
 import { PollOptionRepository } from './poll-option/poll-option.repository';
 import { VoteRepository } from './vote/vote.repository';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class PollService {
@@ -12,6 +13,7 @@ export class PollService {
     private pollRepository: PollRepository,
     private pollOptionRepository: PollOptionRepository,
     private voteRepository: VoteRepository,
+    private dataSource: DataSource,
   ) {}
 
   /*
@@ -59,6 +61,10 @@ export class PollService {
       throw new Error('Invalid poll id');
     }
 
+    if (poll.expiredAt < new Date()) {
+      throw new Error('Poll is expired');
+    }
+
     const cnt = poll.options.length;
     if (optionIndex < 0 || optionIndex >= cnt) {
       throw new Error('Invalid option index');
@@ -69,12 +75,22 @@ export class PollService {
       throw new Error('User already voted');
     }
 
-    const vote = this.voteRepository.create({
-      userId,
-      pollId,
-      optionIndex,
-      optionId: poll.options[optionIndex].id,
+    this.dataSource.transaction(async (manager) => {
+      await manager.query(
+        `UPDATE poll_options SET votes = votes + 1 WHERE id = $1`,
+        [poll.options[optionIndex].id],
+      );
+      await manager.query(`UPDATE polls SET votes = votes + 1 WHERE id = $1`, [
+        pollId,
+      ]);
+
+      const vote = this.voteRepository.create({
+        userId,
+        pollId,
+        optionIndex,
+        optionId: poll.options[optionIndex].id,
+      });
+      await manager.save(vote);
     });
-    await this.voteRepository.save(vote);
   }
 }

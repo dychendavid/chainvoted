@@ -4,6 +4,7 @@ import {
   Get,
   HttpException,
   HttpStatus,
+  Param,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -13,6 +14,7 @@ import { CreatePollOptionDto } from './poll.dto';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { JwtAuthGuard } from '../auth/auth.guard';
 import { GetUser } from '../user/user.decorator';
+import { VoteRepository } from './vote/vote.repository';
 
 @Controller('api/poll')
 export class PollController {
@@ -20,11 +22,25 @@ export class PollController {
     private readonly pollService: PollService,
     private pollRepository: PollRepository,
     private blockchainService: BlockchainService,
+    private voteRepository: VoteRepository,
   ) {}
 
   @Get()
   async getPolls() {
-    return await this.pollRepository.findAllDesc();
+    return await this.pollRepository.findAllFilteredAndDesc();
+  }
+
+  @Get(':id')
+  async getPoll(@GetUser('id') userId, @Param('id') id: number) {
+    const poll = await this.pollRepository.getPollWithOptions(id);
+    const isVoted = await this.voteRepository.findOneBy({
+      pollId: id,
+      userId,
+    });
+    return {
+      ...poll,
+      isVoted: !!isVoted,
+    };
   }
 
   @Post()

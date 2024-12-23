@@ -8,14 +8,39 @@ export class PollRepository extends Repository<PollEntity> {
     super(PollEntity, dataSource.createEntityManager());
   }
 
-  async findAllDesc(
-    where?: FindOptionsWhere<PollEntity>,
-  ): Promise<PollEntity[]> {
-    return this.find({
-      where,
+  getBaseFindProperties() {
+    return {
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        votes: true,
+        cover: true,
+        expiredAt: true,
+        isEnableDonations: true,
+        isEmailVerification: true,
+        isSmsVerification: true,
+        isIdVerification: true,
+        options: {
+          votes: true,
+          title: true,
+          description: true,
+          cover: true,
+        },
+      },
       relations: {
         options: true,
       },
+    };
+  }
+
+  async findAllFilteredAndDesc(
+    where?: FindOptionsWhere<PollEntity>,
+  ): Promise<PollEntity[]> {
+    const find = this.getBaseFindProperties();
+    return this.find({
+      ...find,
+      where,
       order: { expiredAt: 'DESC', id: 'DESC' },
     });
   }
