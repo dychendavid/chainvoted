@@ -42,7 +42,7 @@ const PollDetail = ({ onBack, onLoading }: PollDetailProps) => {
   const [loadingDots, setLoadingDots] = useState(0);
   const intervalRef = useRef(null);
 
-  const contract = useContractReady(poll.address, PollContract.abi);
+  const contract = useContractReady(poll?.address, PollContract.abi);
   const wallet = useWalletReady();
 
   const [loadingStatus, setLoadingStatus] = useState("");
@@ -77,8 +77,8 @@ const PollDetail = ({ onBack, onLoading }: PollDetailProps) => {
   });
 
   useEffect(() => {
-    contract?.on("Donated", (totalVotes, optionVotes) => {
-      // TODO: Update poll stats
+    // TODO: change to Donated event
+    contract?.on("Voted", (totalVotes, optionVotes) => {
       // pollStore.updateStats({ totalVotes, optionVotes, isVoted: true });
       // publish(TransactionStatus.END);
     });
