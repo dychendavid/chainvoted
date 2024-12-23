@@ -4,13 +4,9 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { GoogleStrategy } from './google.strategy';
-import { JwtStrategy } from './jwt.strategy';
-import { UserService } from '../user/user.service';
 import { UserRepository } from '../user/user.repository';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity, UserPollEntity } from '../user/user.entity';
-import { UserController } from '../user/user.controller';
+import { AuthLogRepository } from './auth.repository';
+import { SessionLogRepository } from './session/session.repository';
 
 @Module({
   imports: [
@@ -20,19 +16,19 @@ import { UserController } from '../user/user.controller';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: '1d' },
+        signOptions: {
+          expiresIn: configService.get('JWT_EXPIRES_IN_DAYS') + 'd',
+        },
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([UserEntity, UserPollEntity]),
   ],
   controllers: [AuthController],
   providers: [
     AuthService,
-    GoogleStrategy,
-    JwtStrategy,
-    UserService,
+    AuthLogRepository,
     JwtService,
+    SessionLogRepository,
     UserRepository,
   ],
 })

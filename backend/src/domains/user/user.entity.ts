@@ -11,6 +11,10 @@ export class UserEntity {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
+  // for login session
+  @Column({ nullable: true })
+  token: string;
+
   @Column({ nullable: true })
   name: string;
 
@@ -18,10 +22,10 @@ export class UserEntity {
   email: string;
 
   @Column({ unique: true, nullable: true })
-  picture: string;
-
-  @Column({ unique: false, nullable: true })
   sms: string;
+
+  @Column({ length: 42, nullable: true, name: 'address' })
+  address: string;
 
   @Column({ nullable: true, name: 'is_email_verified' })
   isEmailVerified: boolean;
@@ -29,8 +33,8 @@ export class UserEntity {
   @Column({ nullable: true, name: 'is_sms_verified' })
   isSmsVerified: boolean;
 
-  @Column({ length: 42, nullable: true, name: 'address' })
-  address: string;
+  @Column({ nullable: true })
+  picture: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
