@@ -41,13 +41,27 @@ export class AuthService {
       });
 
       // update user profile
-      const user = await this.userRepositoy.findOneBy({ email: payload.email });
-      await this.userRepositoy.update(user.id, {
-        email: payload.email,
-        name: payload.name,
-        picture: payload.picture,
-        isEmailVerified: true,
-      });
+      let user = await this.userRepositoy.findOneBy({ email: payload.email });
+      if (!user) {
+        user = await this.userRepositoy.create({
+          email: payload.email,
+          name: payload.name,
+          picture: payload.picture,
+          isEmailVerified: true,
+        });
+        await this.userRepositoy.save(user);
+      } else {
+        // if email exists, just update info from google
+        await this.userRepositoy.upsert(
+          {
+            email: payload.email,
+            name: payload.name,
+            picture: payload.picture,
+            isEmailVerified: true,
+          },
+          ['email'],
+        );
+      }
 
       const signed = await this.login(payload.email);
       return signed;
@@ -82,5 +96,16 @@ export class AuthService {
       token: signed,
     });
     return signed;
+  }
+
+  async validateUserPayload(payload) {
+    const user = await this.userRepositoy.findOneBy({
+      id: payload.sub,
+      email: payload.email,
+    });
+    if (!user) {
+      throw new UnauthorizedException('Invalid token');
+    }
+    return user;
   }
 }

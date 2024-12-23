@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { UserRepository } from '../user/user.repository';
 import { AuthLogRepository } from './auth.repository';
 import { SessionLogRepository } from './session/session.repository';
+import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { SessionLogRepository } from './session/session.repository';
     AuthService,
     AuthLogRepository,
     JwtService,
+    JwtStrategy,
     SessionLogRepository,
     UserRepository,
   ],
