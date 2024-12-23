@@ -1,85 +1,22 @@
-import { PollEntity, PollOptionEntity } from './poll.entity';
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, MoreThan, Repository, UpdateResult } from 'typeorm';
-import { CreatePollOptionDto } from './poll.dto';
+import { DataSource, FindOptionsWhere, Repository } from 'typeorm';
+import { PollEntity } from './poll.entity';
 
 @Injectable()
-export class PollRepository {
-  constructor(
-    @InjectRepository(PollEntity)
-    private pollRepo: Repository<PollEntity>,
+export class PollRepository extends Repository<PollEntity> {
+  constructor(private dataSource: DataSource) {
+    super(PollEntity, dataSource.createEntityManager());
+  }
 
-    @InjectRepository(PollOptionEntity)
-    private optionRepo: Repository<PollOptionEntity>,
-  ) {}
-
-  findAllDesc(where?: FindOptionsWhere<PollEntity>): Promise<PollEntity[]> {
-    return this.pollRepo.find({
+  async findAllDesc(
+    where?: FindOptionsWhere<PollEntity>,
+  ): Promise<PollEntity[]> {
+    return this.find({
       where,
       relations: {
         options: true,
       },
       order: { expiredAt: 'DESC', id: 'DESC' },
-    });
-  }
-
-  findAlivePolls(): Promise<PollEntity[]> {
-    return this.pollRepo.find({
-      where: {
-        expiredAt: MoreThan(new Date()),
-      },
-      relations: {
-        options: true,
-      },
-    });
-  }
-
-  findOne(id: number): Promise<PollEntity> {
-    return this.pollRepo.findOneBy({ id });
-  }
-
-  update(id: number, data: Partial<PollEntity>): Promise<UpdateResult> {
-    return this.pollRepo.update(id, data);
-  }
-
-  create({
-    title,
-    description,
-    cover,
-    expiredAt,
-    address,
-    isEnableDonations,
-  }: {
-    title: string;
-    description: string;
-    cover: string;
-    expiredAt: string;
-    address?: string;
-    isEnableDonations?: boolean;
-  }): Promise<PollEntity> {
-    const pollEntity = this.pollRepo.create({
-      title,
-      description,
-      cover,
-      expiredAt: new Date(expiredAt),
-      address,
-      isEnableDonations,
-    });
-    return this.pollRepo.save(pollEntity);
-  }
-
-  createOptions(dto: CreatePollOptionDto[]): Promise<PollOptionEntity[]> {
-    const entities = this.optionRepo.create(dto);
-    return this.optionRepo.save(entities);
-  }
-
-  getPollWithOptions(pollId: number): Promise<PollEntity> {
-    return this.pollRepo.findOne({
-      where: { id: pollId },
-      relations: {
-        options: true,
-      },
     });
   }
 }

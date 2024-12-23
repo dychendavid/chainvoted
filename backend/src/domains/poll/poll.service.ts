@@ -1,30 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { ethers } from 'ethers';
 import { PollRepository } from './poll.repository';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { CreatePollOptionDto } from './poll.dto';
-import { UserRepository } from '../user/user.repository';
-import { TxQueueService } from '../blockchain/tx-queue.service';
-import { Interval } from '@nestjs/schedule';
+import { PollOptionRepository } from './poll-option.repository';
 
 @Injectable()
 export class PollService {
-  private localProvider: ethers.JsonRpcProvider;
-
   constructor(
-    private pollRepository: PollRepository,
-    private userRepository: UserRepository,
     private blockchainService: BlockchainService,
-    private txQueueService: TxQueueService,
-  ) {
-    // TODO: should be configureable
-    this.localProvider = new ethers.JsonRpcProvider('http://127.0.0.1:8545');
-  }
-
-  getProvider() {
-    return this.localProvider;
-  }
+    private pollRepository: PollRepository,
+    private pollOptionRepository: PollOptionRepository,
+  ) {}
 
   /*
    * create poll and options, and deploy contract by each poll
@@ -37,15 +23,16 @@ export class PollService {
     expiredAt: string,
     isEnableDonations: boolean,
   ) {
-    const pollEntity = await this.pollRepository.create({
+    const pollEntity = this.pollRepository.create({
       title,
       description,
       cover,
       expiredAt,
       isEnableDonations,
     });
+    await this.pollRepository.save(pollEntity);
 
-    const optionEntities = await this.pollRepository.createOptions(
+    const optionEntities = this.pollOptionRepository.create(
       options.map((option) => ({
         pollId: pollEntity.id,
         title: option.title,
@@ -53,6 +40,7 @@ export class PollService {
         cover: option.cover,
       })),
     );
+    await this.pollOptionRepository.save(optionEntities);
 
     const contract = await this.blockchainService.deployContract('Poll', [
       optionEntities.length,
@@ -61,33 +49,5 @@ export class PollService {
     const address = await contract.getAddress();
     pollEntity.address = address;
     await this.pollRepository.update(pollEntity.id, pollEntity);
-  }
-
-  /*
-   * iteration by poll(contract), add verified users to the contract
-   */
-  // @Interval(10000)
-  async addVerifiedUsers() {
-    const polls = await this.pollRepository.findAlivePolls();
-    for (const poll of polls) {
-      const users = await this.userRepository.findToBeParticipantsByPoll(
-        poll.id,
-      );
-
-      // TODO: make sure the contract method executable
-      this.txQueueService.queue(
-        poll.address,
-        'addVoters',
-        users.map((user) => user.address),
-      );
-
-      // NOTE: bulk add voters have higher performance and lower cost
-      // server side record for analysis
-      const userPolls = users.map((user) => ({
-        userId: user.id,
-        pollId: poll.id,
-      }));
-      await this.userRepository.addVoters(userPolls);
-    }
   }
 }
