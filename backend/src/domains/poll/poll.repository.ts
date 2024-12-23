@@ -19,4 +19,13 @@ export class PollRepository extends Repository<PollEntity> {
       order: { expiredAt: 'DESC', id: 'DESC' },
     });
   }
+
+  getPollWithOptions(pollId: number): Promise<PollEntity> {
+    return this.findOne({
+      where: { id: pollId },
+      relations: {
+        options: true,
+      },
+    });
+  }
 }

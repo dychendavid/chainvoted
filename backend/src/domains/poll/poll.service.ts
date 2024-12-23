@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PollRepository } from './poll.repository';
 import { BlockchainService } from '../blockchain/blockchain.service';
 import { CreatePollOptionDto } from './poll.dto';
-import { PollOptionRepository } from './poll-option.repository';
+import { PollOptionRepository } from './poll-option/poll-option.repository';
+import { VoteRepository } from './vote/vote.repository';
 
 @Injectable()
 export class PollService {
@@ -10,6 +11,7 @@ export class PollService {
     private blockchainService: BlockchainService,
     private pollRepository: PollRepository,
     private pollOptionRepository: PollOptionRepository,
+    private voteRepository: VoteRepository,
   ) {}
 
   /*
@@ -49,5 +51,30 @@ export class PollService {
     const address = await contract.getAddress();
     pollEntity.address = address;
     await this.pollRepository.update(pollEntity.id, pollEntity);
+  }
+
+  async vote(userId: number, pollId: number, optionIndex: number) {
+    const poll = await this.pollRepository.getPollWithOptions(pollId);
+    if (!poll) {
+      throw new Error('Invalid poll id');
+    }
+
+    const cnt = poll.options.length;
+    if (optionIndex < 0 || optionIndex >= cnt) {
+      throw new Error('Invalid option index');
+    }
+
+    const voted = await this.voteRepository.findOneBy({ userId, pollId });
+    if (voted) {
+      throw new Error('User already voted');
+    }
+
+    const vote = this.voteRepository.create({
+      userId,
+      pollId,
+      optionIndex,
+      optionId: poll.options[optionIndex].id,
+    });
+    await this.voteRepository.save(vote);
   }
 }

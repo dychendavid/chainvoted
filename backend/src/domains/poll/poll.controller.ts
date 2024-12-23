@@ -5,11 +5,14 @@ import {
   HttpException,
   HttpStatus,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { PollService } from './poll.service';
 import { PollRepository } from './poll.repository';
 import { CreatePollOptionDto } from './poll.dto';
 import { BlockchainService } from '../blockchain/blockchain.service';
+import { JwtAuthGuard } from '../auth/auth.guard';
+import { GetUser } from '../user/user.decorator';
 
 @Controller('api/poll')
 export class PollController {
@@ -50,6 +53,30 @@ export class PollController {
       return {
         status: HttpStatus.OK,
         message: 'Poll created successfully',
+      };
+    } catch (e) {
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: e.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('vote')
+  @UseGuards(JwtAuthGuard)
+  async vote(
+    @GetUser('id') userId,
+    @Body('poll_id') pollId: number,
+    @Body('option_index') optionIndex: number,
+  ) {
+    try {
+      await this.pollService.vote(userId, pollId, optionIndex);
+      return {
+        status: HttpStatus.OK,
+        message: 'Vote submitted successfully',
       };
     } catch (e) {
       throw new HttpException(
