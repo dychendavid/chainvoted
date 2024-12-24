@@ -6,6 +6,7 @@ interface ResponsiveImageProps {
   alt: string;
   className?: string;
   fallbackSrc?: string; // Optional fallback image
+  onClick?: () => void;
 }
 
 const ResponsiveImage = ({
@@ -13,6 +14,7 @@ const ResponsiveImage = ({
   alt,
   className = "",
   fallbackSrc = "/placeholder.png",
+  onClick,
 }: ResponsiveImageProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -64,22 +66,21 @@ const ResponsiveImage = ({
         <div className="absolute inset-0 bg-gray-100 animate-pulse rounded-md" />
       )}
 
-      <div className="aspect-video">
-        <Image
-          src={src}
-          alt={alt}
-          layout="fill"
-          loading="lazy"
-          className={`
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        loading="lazy"
+        className={`
             object-cover rounded-md
             transition-opacity duration-300
             ${isLoading ? "opacity-0" : "opacity-100"}
           `}
-          onLoadingComplete={() => setIsLoading(false)}
-          onError={() => setHasError(true)}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
-      </div>
+        onLoad={() => setIsLoading(false)}
+        onError={() => setHasError(true)}
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+        onClick={onClick}
+      />
     </div>
   );
 };

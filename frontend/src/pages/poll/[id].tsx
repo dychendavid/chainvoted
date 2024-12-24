@@ -1,4 +1,11 @@
-import { ChevronLeft, ExternalLink, Lock, Phone, Shield } from "lucide-react";
+import {
+  ChevronLeft,
+  ExternalLink,
+  Lock,
+  Phone,
+  Shield,
+  Wallet,
+} from "lucide-react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -113,23 +120,28 @@ const PollPage = ({ onBack, onLoading }: PollDetailProps) => {
           />
         )}
 
-        <div className="flex justify-between items-start">
-          <div>
-            <h2 className="text-2xl font-bold mb-2">{poll?.title}</h2>
-            <p className="text-gray-600">{poll?.description}</p>
+        <div className="flex-1">
+          <div className="flex flex-col md:flex-row justify-between md:items-start gap-2 md:gap-0 mb-2">
+            <h3 className="text-2xl font-bold">{poll?.title}</h3>
+            <div className="flex gap-2">
+              {poll?.isIdVerification && (
+                <div className="flex items-center gap-1 text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">
+                  <Shield className="w-3 h-3" /> ID
+                </div>
+              )}
+              {poll?.isSmsVerification && (
+                <div className="flex items-center gap-1 text-xs bg-purple-50 text-purple-600 px-2 py-1 rounded">
+                  <Phone className="w-3 h-3" /> SMS
+                </div>
+              )}
+              {poll?.isEnableDonations && (
+                <div className="flex items-center gap-1 text-xs bg-green-50 text-green-600 px-2 py-1 rounded">
+                  <Wallet className="w-3 h-3" /> ETH
+                </div>
+              )}
+            </div>
           </div>
-          <div className="flex flex-row sm:flex-col gap-2 sm:gap-3 shrink-0 ml-2 text-xs">
-            {poll?.isIdVerification && (
-              <div className="flex items-center gap-1 text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">
-                <Shield className="w-3 h-3" />
-              </div>
-            )}
-            {poll?.isSmsVerification && (
-              <div className="flex items-center gap-1 text-xs bg-purple-50 text-purple-600 px-2 py-1 rounded">
-                <Phone className="w-3 h-3" />
-              </div>
-            )}
-          </div>
+          <p className="text-gray-600">{poll?.description}</p>
         </div>
 
         {!isAuthenticated ? (

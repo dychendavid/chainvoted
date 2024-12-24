@@ -44,9 +44,9 @@ const PageHeader = () => {
           /> */}
         ChainVote.D
       </h1>
-      <Button onClick={handleConnectWallet} disabled={wallet.isConnected}>
+      {/* <Button onClick={handleConnectWallet} disabled={wallet.isConnected}>
         {wallet.isConnected ? "Wallet Connected" : "Connect Wallet"}
-      </Button>
+      </Button> */}
       <LoginButton />
       <AlertDialog open={!!error}>
         <AlertDialogContent>

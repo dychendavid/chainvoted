@@ -1,6 +1,7 @@
 import useUserStore, { UserProps } from "@/stores/userStore";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useEffect } from "react";
+import { Button } from "./ui/button";
 
 export default function LoginButton() {
   const { data: session, status } = useSession();
@@ -12,21 +13,20 @@ export default function LoginButton() {
   if (session) {
     return (
       <div className="flex items-center gap-4">
-        <img
-          src={session.user?.picture ?? ""}
-          alt={session.user?.name ?? ""}
-          className="w-8 h-8 rounded-full"
-        />
-        <span>{session.user?.name}</span>
-        {/* {session.backendToken && (
-          <span className="text-green-500 text-sm">✓ Connected</span>
-        )} */}
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => signOut()}
-          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+          className="gap-2 xs:hidden"
         >
-          Sign out
-        </button>
+          <img
+            src={session.user?.picture ?? ""}
+            alt={session.user?.name ?? ""}
+            className="w-8 h-8 rounded-full"
+          />
+
+          <span className="hidden sm:block">Sign out</span>
+        </Button>
       </div>
     );
   }
@@ -54,7 +54,7 @@ export default function LoginButton() {
           d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
         />
       </svg>
-      Sign in with Google
+      <span className="hidden sm:block">Sign in with Google</span>
     </button>
   );
 }
