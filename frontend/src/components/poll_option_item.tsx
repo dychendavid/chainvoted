@@ -1,7 +1,6 @@
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { ThumbsUp, Wallet } from "lucide-react";
-import usePollStore, { PollOptionProps, PollProps } from "@/stores/PollStore";
 import { useEffect, useState } from "react";
 import PollContract from "@shared/artifacts/contracts/Poll.sol/Poll.json";
 import {
@@ -25,9 +24,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import usePollController from "@/controllers/poll_controller";
-import useUserStore from "@/stores/userStore";
 import { AxiosError } from "axios";
 import { ApiCallStatus } from "@/lib/api";
+import { useSession } from "next-auth/react";
+import ResponsiveImage from "./responsive_image";
+import { PollProps } from "@/types/poll";
 
 type PollOptionItemProps = {
   poll: PollProps;
@@ -39,8 +40,8 @@ type ApiResponse = {
 };
 
 const PollOptionItem = ({ poll, index }: PollOptionItemProps) => {
-  const userStore = useUserStore();
-  const { voteMutation } = usePollController(userStore.userId);
+  const { data: session } = useSession();
+  const { voteMutation } = usePollController();
   const [showDonateModal, setShowDonateModal] = useState(false);
   const [donateAmount, setDonateAmount] = useState(0);
   // NOTE: this contract should change to donation contract
@@ -148,9 +149,9 @@ const PollOptionItem = ({ poll, index }: PollOptionItemProps) => {
     <>
       <Card key={option.id} className="overflow-hidden">
         {option.cover && (
-          <img
-            src={option.cover}
-            alt={option.title}
+          <ResponsiveImage
+            src={option?.cover}
+            alt={option?.title}
             className="w-full h-48 object-cover"
           />
         )}
@@ -175,7 +176,7 @@ const PollOptionItem = ({ poll, index }: PollOptionItemProps) => {
           <div className="flex gap-2 mt-4">
             <Button
               className="flex-1 gap-2"
-              disabled={isVoted || isExpired}
+              disabled={isVoted || isExpired || !session?.user.id}
               onClick={handleVote}
             >
               <ThumbsUp className="w-4 h-4" />

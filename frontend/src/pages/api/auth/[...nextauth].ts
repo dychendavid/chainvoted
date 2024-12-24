@@ -9,6 +9,10 @@ export type AuthorizedSession = Session & {
 };
 
 export const authOptions = {
+  session: {
+    jwt: true,
+    maxAge: 30 * 24 * 60 * 60,
+  },
   providers: [
     AppleProvider({
       clientId: process.env.APPLE_ID,
@@ -31,8 +35,9 @@ export const authOptions = {
   ],
   callbacks: {
     async jwt({ token, account }) {
+      // token exist in each time
+      // others only exist in first time of current session
       if (account) {
-        // After Google login success, call your backend
         try {
           const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
@@ -48,7 +53,8 @@ export const authOptions = {
           );
 
           const res = await response.json();
-          token.token = res.data;
+          token.backendToken = res.data.token;
+          token.user = res.data.user;
         } catch (error) {
           console.error("Backend login failed:", error);
         }
@@ -56,8 +62,9 @@ export const authOptions = {
       return token;
     },
     async session({ session, token, user }) {
-      // save backend token in client session
-      session.token = token.token;
+      // save authenticated info in client session
+      session.backendToken = token.backendToken;
+      session.user = token.user;
       return session;
     },
   },

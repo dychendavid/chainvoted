@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { BigNumber } from "ethers";
+import { PollProps } from "@/types/poll";
 
 export type PollStatUpdateDtoProps = {
   totalVotes: BigNumber;
@@ -12,31 +13,6 @@ export type PollStatsDtoProps = {
   optionVotes: BigNumber[];
   isClosed: boolean;
   isVoted?: boolean;
-};
-
-export type PollProps = {
-  id?: number;
-  title: string;
-  description: string;
-  votes: number;
-  cover: string;
-  expiredAt: string;
-  address: string;
-  isVoted?: boolean;
-  isEmailVerification: boolean;
-  isSmsVerification: boolean;
-  isIdVerification: boolean;
-  isEnableDonations: boolean;
-  options: PollOptionProps[];
-};
-
-export type PollOptionProps = {
-  id?: number;
-  pollId: number;
-  title: string;
-  description: string;
-  cover: string;
-  votes: number;
 };
 
 export type PollStoreProps = {

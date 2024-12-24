@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import PollContract from "@shared/artifacts/contracts/Poll.sol/Poll.json";
 import { useContractReady, useWalletReady } from "@/hooks/useWalletReady";
-import usePollStore, { PollProps, PollStatsDtoProps } from "@/stores/PollStore";
-import { isUndefined } from "lodash";
+import usePollStore, { PollStatsDtoProps } from "@/stores/PollStore";
+import ResponsiveImage from "./responsive_image";
+import { PollProps } from "@/types/poll";
 
 type PollListItemProps = {
   poll: PollProps;
@@ -49,7 +50,7 @@ const PollListItem = ({ poll, onClick }: PollListItemProps) => {
       <CardContent className="p-4">
         <div className="flex flex-col md:flex-row md:gap-4">
           {poll.cover && (
-            <img
+            <ResponsiveImage
               src={poll.cover}
               alt={poll.title}
               className="w-full h-48 md:w-32 md:h-24 object-cover rounded-lg mb-4 md:mb-0"

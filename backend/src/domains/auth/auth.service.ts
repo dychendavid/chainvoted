@@ -112,8 +112,8 @@ export class AuthService {
 
   async validateUserPayload(payload) {
     const user = await this.userRepositoy.findOneBy({
-      id: payload.user.id,
-      email: payload.user.email,
+      id: payload.user?.id,
+      email: payload.user?.email,
     });
 
     if (!user) {

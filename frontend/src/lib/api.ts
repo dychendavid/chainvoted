@@ -10,8 +10,8 @@ const apiBase = axios.create({
 apiBase.interceptors.request.use(async (config) => {
   const session = (await getSession()) as AuthorizedSession;
 
-  if (session?.token) {
-    config.headers.Authorization = `Bearer ${session.token}`;
+  if (session?.backendToken) {
+    config.headers.Authorization = `Bearer ${session.backendToken}`;
   }
 
   return config;

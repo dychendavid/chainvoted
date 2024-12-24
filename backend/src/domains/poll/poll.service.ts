@@ -76,9 +76,10 @@ export class PollService {
     }
 
     this.dataSource.transaction(async (manager) => {
+      const optionId = poll.options[optionIndex].id;
       await manager.query(
         `UPDATE poll_options SET votes = votes + 1 WHERE id = $1`,
-        [poll.options[optionIndex].id],
+        [optionId],
       );
       await manager.query(`UPDATE polls SET votes = votes + 1 WHERE id = $1`, [
         pollId,

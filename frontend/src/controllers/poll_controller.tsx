@@ -1,11 +1,9 @@
-import applyCaseMiddleware from "axios-case-converter";
 import { useMutation, useQuery, useQueries } from "@tanstack/react-query";
 import { API } from "@/configs/api";
-import apiBase from "@/lib/api";
 import { PollProps, VoteProps } from "@/stores/PollStore";
 import apiClient from "@/lib/api";
 
-const usePollController = (user_id: number) => {
+const usePollController = () => {
   const { data: polls, refetch: refetchPolls } = useQuery<PollProps[]>({
     queryKey: [API.POLL],
     queryFn: () => {
@@ -14,19 +12,22 @@ const usePollController = (user_id: number) => {
     // enabled: !!user_id,
   });
 
-  const usePoll = (pollId: number) => {
+  const useGetPoll = (pollId: number) => {
     return useQuery<PollProps>({
       queryKey: [API.POLL, pollId],
       queryFn: () => {
         return apiClient.get(`${API.POLL}/${pollId}`).then((res) => res.data);
       },
-      // enabled: !!user_id,
+      enabled: !!pollId,
     });
   };
 
   const voteMutation = useMutation({
     mutationFn: (form: VoteProps) => {
-      return apiClient.post(`${API.VOTE}`, { ...form }).then((res) => res.data);
+      const pollId = form.pollId;
+      return apiClient
+        .post(`${API.VOTE}/${pollId}`, { option_index: form.optionIndex })
+        .then((res) => res.data);
     },
   });
 
@@ -34,7 +35,7 @@ const usePollController = (user_id: number) => {
     polls,
     refetchPolls,
     voteMutation,
-    usePoll,
+    useGetPoll,
   };
 };
 

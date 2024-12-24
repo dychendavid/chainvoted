@@ -1,14 +1,9 @@
+import useUserStore, { UserProps } from "@/stores/userStore";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useEffect } from "react";
 
 export default function LoginButton() {
   const { data: session, status } = useSession();
-
-  useEffect(() => {
-    if (session) {
-      console.log(session);
-    }
-  }, [session]);
 
   if (status === "loading") {
     return <div>Loading...</div>;
@@ -18,14 +13,14 @@ export default function LoginButton() {
     return (
       <div className="flex items-center gap-4">
         <img
-          src={session.user?.image ?? ""}
+          src={session.user?.picture ?? ""}
           alt={session.user?.name ?? ""}
           className="w-8 h-8 rounded-full"
         />
         <span>{session.user?.name}</span>
-        {session.backendToken && (
+        {/* {session.backendToken && (
           <span className="text-green-500 text-sm">✓ Connected</span>
-        )}
+        )} */}
         <button
           onClick={() => signOut()}
           className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
