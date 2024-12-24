@@ -101,7 +101,7 @@ const PollPage = ({ onBack, onLoading }: PollDetailProps) => {
       <PageHeader />
 
       <div className="space-y-4">
-        <Link href="/polls">
+        <Link href="/">
           <Button
             variant="outline"
             size="sm"
