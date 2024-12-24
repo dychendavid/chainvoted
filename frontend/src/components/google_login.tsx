@@ -1,4 +1,3 @@
-import useUserStore, { UserProps } from "@/stores/userStore";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useEffect } from "react";
 import { Button } from "./ui/button";

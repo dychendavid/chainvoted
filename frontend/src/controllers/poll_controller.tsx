@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueries } from "@tanstack/react-query";
 import { API } from "@/configs/api";
-import { PollProps, VoteProps } from "@/stores/PollStore";
+import { VoteProps } from "@/stores/PollStore";
 import apiClient from "@/lib/api";
+import { PollProps } from "@/types/poll";
 
 const usePollController = () => {
   const { data: polls, refetch: refetchPolls } = useQuery<PollProps[]>({

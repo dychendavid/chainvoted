@@ -22,6 +22,7 @@ import PollContract from "@shared/artifacts/contracts/Poll.sol/Poll.json";
 import usePollController from "@/controllers/poll_controller";
 import useUserStore from "@/stores/userStore";
 import { ApiCallStatus } from "@/lib/api";
+import { useSession } from "next-auth/react";
 
 type PollDetailProps = {
   onBack?: () => void;
@@ -29,14 +30,15 @@ type PollDetailProps = {
 };
 
 const PollDetail = ({ onBack, onLoading }: PollDetailProps) => {
+  const { data: session, status } = useSession();
   const pollStore = usePollStore();
-  const userStore = useUserStore();
-  const { usePoll } = usePollController(userStore.userId);
-  const { data: poll, refetch: refetchPoll } = usePoll(pollStore.poll.id);
+  // const userStore = useUserStore();
+  const { useGetPoll } = usePollController();
+  const { data: poll, refetch: refetchPoll } = useGetPoll(pollStore.poll.id);
 
   // TODO: Implement authentication and verification checks
   const needsVerification = false;
-  const isAuthenticated = true;
+  const isAuthenticated = !!session?.user.id;
 
   const [isLoading, setIsLoading] = useState(false);
   const [loadingDots, setLoadingDots] = useState(0);
@@ -71,7 +73,8 @@ const PollDetail = ({ onBack, onLoading }: PollDetailProps) => {
     clearInterval(intervalRef.current);
   });
 
-  useSub([ApiCallStatus.ERROR, BlockchainTransactionStatus.END], () => {
+  useSub(ApiCallStatus.ERROR, () => {
+    console.log("in api call error");
     setIsLoading(false);
     clearInterval(intervalRef.current);
   });
@@ -103,17 +106,15 @@ const PollDetail = ({ onBack, onLoading }: PollDetailProps) => {
           <h2 className="text-2xl font-bold mb-2">{poll?.title}</h2>
           <p className="text-gray-600">{poll?.description}</p>
         </div>
-        <div className="sm:flex gap-2">
+        <div className="flex flex-row sm:flex-col gap-2 sm:gap-3 shrink-0 ml-2 text-xs">
           {poll?.isIdVerification && (
-            <div className="flex items-center gap-1 bg-blue-50 text-blue-600 px-3 py-1.5 rounded">
-              <Shield className="w-4 h-4" />
-              <span className="hidden sm:block">ID Required</span>
+            <div className="flex items-center gap-1 text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">
+              <Shield className="w-3 h-3" />
             </div>
           )}
           {poll?.isSmsVerification && (
-            <div className="flex items-center gap-1 bg-purple-50 text-purple-600 px-3 py-1.5 rounded">
-              <Phone className="w-4 h-4" />
-              <span className="hidden sm:block">SMS Verify</span>
+            <div className="flex items-center gap-1 text-xs bg-purple-50 text-purple-600 px-2 py-1 rounded">
+              <Phone className="w-3 h-3" />
             </div>
           )}
         </div>
@@ -122,7 +123,7 @@ const PollDetail = ({ onBack, onLoading }: PollDetailProps) => {
       {!isAuthenticated ? (
         <Alert>
           <AlertDescription className="flex items-center gap-2">
-            <Lock className="w-4 h-4" /> Please authenticate to vote
+            <Lock className="w-4 h-4" /> Please sign in to vote
           </AlertDescription>
         </Alert>
       ) : (
@@ -136,9 +137,7 @@ const PollDetail = ({ onBack, onLoading }: PollDetailProps) => {
                 variant="outline"
                 size="sm"
                 className="gap-1"
-                onClick={() => {
-                  /* Navigate to profile */
-                }}
+                onClick={() => {}}
               >
                 Complete Verification <ExternalLink className="w-3 h-3" />
               </Button>
