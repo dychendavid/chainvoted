@@ -73,10 +73,19 @@ export class AuthService {
 
   async login(email) {
     const user = await this.userRepositoy.findOneBy({ email: email });
+    const userToSign = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      picture: user.picture,
+      isEmailVerified: user.isEmailVerified,
+      isSmsVerified: user.isSmsVerified,
+      isIdVerified: user.isIdVerified,
+    };
+
     const signed = await this.jwtService.sign(
       {
-        sub: user.id,
-        email: user.email,
+        user: userToSign,
       },
       {
         secret: this.configService.get('JWT_SECRET'),
@@ -95,14 +104,18 @@ export class AuthService {
     await this.userRepositoy.update(user.id, {
       token: signed,
     });
-    return signed;
+    return {
+      token: signed,
+      user: userToSign,
+    };
   }
 
   async validateUserPayload(payload) {
     const user = await this.userRepositoy.findOneBy({
-      id: payload.sub,
-      email: payload.email,
+      id: payload.user.id,
+      email: payload.user.email,
     });
+
     if (!user) {
       throw new UnauthorizedException('Invalid token');
     }

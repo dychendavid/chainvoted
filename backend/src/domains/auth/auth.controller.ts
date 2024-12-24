@@ -7,10 +7,14 @@ export class AuthController {
 
   @Post('login')
   async login(@Body('google_token') googleToken: string) {
-    const signed = await this.authService.googleTokenLogin(googleToken);
+    const { token, user } =
+      await this.authService.googleTokenLogin(googleToken);
     return {
       status: HttpStatus.OK,
-      data: signed,
+      data: {
+        token,
+        user,
+      },
     };
   }
 }

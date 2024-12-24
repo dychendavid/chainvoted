@@ -34,6 +34,9 @@ export class UserEntity {
   isSmsVerified: boolean;
 
   @Column({ nullable: true })
+  isIdVerified: boolean;
+
+  @Column({ nullable: true })
   picture: string;
 
   @CreateDateColumn()

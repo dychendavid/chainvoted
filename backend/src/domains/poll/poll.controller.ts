@@ -12,9 +12,10 @@ import { PollService } from './poll.service';
 import { PollRepository } from './poll.repository';
 import { CreatePollOptionDto } from './poll.dto';
 import { BlockchainService } from '../blockchain/blockchain.service';
-import { JwtAuthGuard } from '../auth/auth.guard';
+import { FlexibleJwtAuthGuard, JwtAuthGuard } from '../auth/auth.guard';
 import { GetUser } from '../user/user.decorator';
 import { VoteRepository } from './vote/vote.repository';
+import { ApiResponse } from '@/types/types';
 
 @Controller('api/poll')
 export class PollController {
@@ -31,15 +32,21 @@ export class PollController {
   }
 
   @Get(':id')
-  async getPoll(@GetUser('id') userId, @Param('id') id: number) {
-    const poll = await this.pollRepository.getPollWithOptions(id);
-    const isVoted = await this.voteRepository.findOneBy({
-      pollId: id,
-      userId,
-    });
+  @UseGuards(FlexibleJwtAuthGuard)
+  async getPoll(@GetUser('id') userId, @Param('id') pollId: number) {
+    const poll = await this.pollRepository.getPollWithOptions(pollId);
+    let isVoted = false;
+    if (userId) {
+      const record = await this.voteRepository.findOneBy({
+        pollId,
+        userId,
+      });
+      isVoted = !!record;
+    }
+
     return {
       ...poll,
-      isVoted: !!isVoted,
+      isVoted,
     };
   }
 
@@ -54,7 +61,7 @@ export class PollController {
       transform: (value) => (value === '1' || value == 'true' ? true : false),
     })
     isEnableDonations: boolean,
-  ): Promise<ApiResponse> {
+  ): Promise<ApiResponse<null>> {
     try {
       await this.pollService.addPoll(
         title,
@@ -64,7 +71,6 @@ export class PollController {
         expiredAt,
         isEnableDonations,
       );
-      // await this.pollService.addVerifiedUsers();
 
       return {
         status: HttpStatus.OK,
@@ -81,11 +87,11 @@ export class PollController {
     }
   }
 
-  @Post('vote')
+  @Post('vote/:id')
   @UseGuards(JwtAuthGuard)
   async vote(
     @GetUser('id') userId,
-    @Body('poll_id') pollId: number,
+    @Param('id') pollId: number,
     @Body('option_index') optionIndex: number,
   ) {
     try {
