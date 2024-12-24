@@ -1,5 +1,5 @@
-type ApiResponse = {
+export type ApiResponse<T> = {
   status: number;
   message: string;
-  data?: any;
+  data?: T;
 };
