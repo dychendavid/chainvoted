@@ -34,7 +34,7 @@ export const authOptions = {
     //   from: "David Chen <dychen.1st@gmail.com>",
     // }),
   ],
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.JWT_SECRET,
   callbacks: {
     async jwt({ token, account }) {
       // token exist in each time
